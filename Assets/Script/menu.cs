@@ -6,15 +6,16 @@ public class menu : Main
 	// Use this for initialization
 	void Start ()
 	{
-		//PlayerPrefs.DeleteAll ();
-		//PlayerPrefs.SetInt ("Hearts", 0);
+
+		//PlayerPrefs.DeleteAll();
+		SX = GameObject.Find ("SX");
+
 		if (!PlayerPrefs.HasKey ("Install"))
 			install ();
 		
 		Main.heart = (float)((float)PlayerPrefs.GetInt ("Heart") / 10f);
 		Main.HeartUp (Main.heart);
 
-		onShow ();
 		LevelUp ();
 		CoinUp ();
 	}

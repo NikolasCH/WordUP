@@ -47,9 +47,7 @@ public class word : Main
 	public void OpenBtn (int i)
 	{
 		if (PlayerPrefs.GetInt ("OpenPrice") < 1 || (PlayerPrefs.GetInt ("Coin") >= int.Parse (MainGetGamObject ("p" + (i)).GetComponent <UILabel> ().text) && PlayerPrefs.GetInt ("s" + (i)) != 1)) {		
-			//MainGetGamObject ("s" + (i)).GetComponent <UISprite> ().spriteName = "open word 1";
-			//Destroy (MainGetGamObject ("s" + (i)).GetComponent<BoxCollider> ());
-			//MainGetGamObject ("p" + (i)).transform.localScale = Vector3.zero;
+
 			if (PlayerPrefs.GetInt ("OpenPrice") > 0) {
 				PlayerPrefs.SetInt ("Coin", PlayerPrefs.GetInt ("Coin") - int.Parse (MainGetGamObject ("p" + (i)).GetComponent <UILabel> ().text));
 				CoinUp ();
@@ -58,15 +56,13 @@ public class word : Main
 
 			PlayerPrefs.SetInt ("s" + (i), 1);
 
-//			btn_price += price;
 			check_words ();
-			//for (int n=0; n<6; n++)
-			//	MainGetGamObject ("p" + (n)).GetComponent <UILabel> ().text = btn_price.ToString ();
+
 			if (MainGetGamObject ("Music"))
 				MainGetGamObject ("Music").SendMessage ("onCoins");
-		} else {		
+		} else 		
 			Coin_Panel ();
-		}
+		
 	}
 
 	public void CheckOpenWord (int i)
@@ -88,14 +84,14 @@ public class word : Main
 				check_words ();
 			} else {
 				good_wait (MainGetGamObject ("w" + (i)));
-				if (PlayerPrefs.GetInt ("Heart") < 10)
-					PlayerPrefs.SetInt ("Heart", PlayerPrefs.GetInt ("Heart") + 1);
+				//if (PlayerPrefs.GetInt ("Heart") < 10)
+					//PlayerPrefs.SetInt ("Heart", PlayerPrefs.GetInt ("Heart") + 1);
 				Destroy (MainGetGamObject ("s" + (i)).GetComponent<BoxCollider> ());
 				Destroy (MainGetGamObject ("wb" + (i)).GetComponent<BoxCollider> ());
 				MainGetGamObject ("wb" + (i)).GetComponent <UISprite> ().spriteName = "pravilnoe slovo";
 				//MainGetGamObject ("wb" + (i)).GetComponent <UISprite> ().alpha = 0.3f;
 
-				MainGetGamObject ("s" + (i)).GetComponent <UISprite> ().spriteName = "heart+";
+				MainGetGamObject ("s" + (i)).GetComponent <UISprite> ().spriteName = "+ kristal";
 				MainGetGamObject ("s" + (i)).GetComponent<TweenScale> ().ResetToBeginning ();
 				MainGetGamObject ("s" + (i)).GetComponent<TweenScale> ().delay = 0;
 				MainGetGamObject ("s" + (i)).GetComponent<TweenScale> ().enabled = true;
@@ -167,21 +163,11 @@ public class word : Main
 
 		LevelUp ();
 		CoinUp ();
-
-//		GameObject[] menus = GameObject.FindGameObjectsWithTag ("menu");
-//		foreach (GameObject go in menus)
-//			NGUITools.SetActive (go, false);
 		
 		MainGetGamObject ("bg").SetActive (true);
 
 
 		MainGetGamObject ("CompleteWord").GetComponent <UILabel> ().text = word;		
-
-		
-		//MainGetGamObject ("lvl_b").GetComponent <UILabel> ().text = "+ 1";		
-		//MainGetGamObject ("coin_b").GetComponent <UILabel> ().text = "+ 30";		
-
-		//coTween (gameObject, 2f, gameObject.transform.localPosition, new Vector3 (0, -120, 0), 0);
 
 		postScoreToLeaderBoard (PlayerPrefs.GetInt ("lvl"));		
 		onAchivment ();

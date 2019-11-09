@@ -48,17 +48,17 @@ public class Buttons : Main
 				if (name == "s5")
 					MainGetGamObject ("word").GetComponent<word> ().OpenBtn (5);
 
-				if (name == "wb0")
+				if (name == "wb0" && PlayerPrefs.GetInt ("s0") == 1)
 					MainGetGamObject ("word").GetComponent<word> ().CheckOpenWord (0);
-				if (name == "wb1")
+				if (name == "wb1" && PlayerPrefs.GetInt ("s1") == 1)
 					MainGetGamObject ("word").GetComponent<word> ().CheckOpenWord (1);
-				if (name == "wb2")
+				if (name == "wb2" && PlayerPrefs.GetInt ("s2") == 1)
 					MainGetGamObject ("word").GetComponent<word> ().CheckOpenWord (2);
-				if (name == "wb3")
+				if (name == "wb3" && PlayerPrefs.GetInt ("s3") == 1)
 					MainGetGamObject ("word").GetComponent<word> ().CheckOpenWord (3);
-				if (name == "wb4")
+				if (name == "wb4" && PlayerPrefs.GetInt ("s4") == 1)
 					MainGetGamObject ("word").GetComponent<word> ().CheckOpenWord (4);
-				if (name == "wb5")
+				if (name == "wb5" && PlayerPrefs.GetInt ("s5") == 1)
 					MainGetGamObject ("word").GetComponent<word> ().CheckOpenWord (5);
 
 			}

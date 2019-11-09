@@ -7,7 +7,7 @@ public class Main : MonoBehaviour
 {
 	public static string word = "угадай", language = "RU", temp = "";
 	public static bool cam = false, sound = true, GameOwer = false;
-	public static int baza_Length = 0, price = 10, OpenWord = 500, DeleteWord = 100, PriceOpenLetter = 10, buyHeart = 1000, OpenLetter = 0, OpneAllLetter = 0, OpenWordLetter = 3;
+	public static int baza_Length = 0, price = 5, OpenWord = 100, DeleteWord = 100, PriceOpenLetter = 10, buyHeart = 100, OpenLetter = 0, OpneAllLetter = 0, OpenWordLetter = 0;
 	public static float heart = 10;
 	public static GameObject[] OBJECTS;
 
@@ -70,7 +70,8 @@ public class Main : MonoBehaviour
 	
 	public static void Play ()
 	{
-		//MainGetGamObject ("DeleteCoin").GetComponent<UILabel> ().text = DeleteWord.ToString ();
+		SX.GetComponent<SX_Ads>().onShowSmartBanner();
+		
 		MainGetGamObject ("OpenCoin").GetComponent<UILabel> ().text = OpenWord.ToString ();
 
 		MainGetGamObject ("bg").SetActive (false);
@@ -80,23 +81,17 @@ public class Main : MonoBehaviour
 		CoinUp ();
 		heart = (float)((float)PlayerPrefs.GetInt ("Heart") / 10f);
 
-		Debug.Log (heart);
+		//Debug.Log (heart);
 		baza_Length = 1500;
 		HeartUp (heart);
 		#if UNITY_EDITOR
-		Debug.Log (length ("0-3000"));// + "_" + length ("3000-6000") + "_" + length ("6000-9000") + "_" + length ("9000-12000") + "_" + length ("12000-15000") + "_" + length ("15000-18000"));
+		//Debug.Log (length ("0-3000"));
 		#endif
 		if (PlayerPrefs.GetInt ("lvl") > baza_Length) {
 			Finish ();
 		} else {
 
 			word = basa (PlayerPrefs.GetInt ("lvl"), 6);
-			Debug.Log (word);
-//			btn_price = 10;
-//			for (int i=0; i<6; i++)
-//				if (PlayerPrefs.GetInt ("s" + (i)) > 0)
-//					btn_price += price;
-
 			check_words ();
 		}
 	}
@@ -124,7 +119,7 @@ public class Main : MonoBehaviour
 						Destroy (MainGetGamObject ("s" + (i)).GetComponent<BoxCollider> ());
 					MainGetGamObject ("p" + (i)).transform.localScale = Vector3.zero;
 				} else
-					MainGetGamObject ("p" + (i)).GetComponent <UILabel> ().text = (_word.Length - (OpenWordLetter + 1 + PlayerPrefs.GetInt ("OpenLetter"))) > 0 && PlayerPrefs.GetInt ("OpenPrice") > 0 ? ((_word.Length - (OpenWordLetter + 1 + PlayerPrefs.GetInt ("OpenLetter"))) * price).ToString () : "0";
+					MainGetGamObject ("p" + (i)).GetComponent <UILabel> ().text = (_word.Length - (OpenWordLetter + 1 + PlayerPrefs.GetInt ("OpenLetter"))) > 0 && PlayerPrefs.GetInt ("OpenPrice") > 0 ? ((_word.Length - (OpenWordLetter + 1 + PlayerPrefs.GetInt ("OpenLetter"))) + price).ToString () : "0";
 			} else {
 				if (PlayerPrefs.GetInt ("wb" + (i)) == 1) {
 					MainGetGamObject ("wb" + (i)).GetComponent <UISprite> ().alpha = 0.3f;
@@ -163,9 +158,6 @@ public class Main : MonoBehaviour
 	{	
 		MainGetGamObject ("good").SetActive (true);
 		MainGetGamObject ("pic_menu").SetActive (false);
-//		GameObject[] menus = GameObject.FindGameObjectsWithTag ("menu");
-//		foreach (GameObject go in menus)
-//			NGUITools.SetActive (go, false);
 	}	
 
 
@@ -173,14 +165,14 @@ public class Main : MonoBehaviour
 	{	
 		if (PlayerPrefs.GetInt ("Coin") >= OpenWord) {
 			PlayerPrefs.SetInt ("Coin", PlayerPrefs.GetInt ("Coin") - OpenWord);
-			PlayerPrefs.SetInt ("Heart", PlayerPrefs.GetInt ("Heart") + 1);
+			//PlayerPrefs.SetInt ("Heart", PlayerPrefs.GetInt ("Heart") + 1);
 			CoinUp ();
 			for (int i=0; i<6; i++) {
 				if (check_word (basa (PlayerPrefs.GetInt ("lvl"), i))) {
 					PlayerPrefs.SetInt ("wb" + (i), 1);
 					Destroy (MainGetGamObject ("s" + (i)).GetComponent<BoxCollider> ());
 					Destroy (MainGetGamObject ("wb" + (i)).GetComponent<BoxCollider> ());
-					MainGetGamObject ("s" + (i)).GetComponent <UISprite> ().spriteName = "heart+";
+					MainGetGamObject ("s" + (i)).GetComponent <UISprite> ().spriteName = "+ kristal";
 					MainGetGamObject ("wb" + (i)).GetComponent <UISprite> ().spriteName = "pravilnoe slovo";
 					MainGetGamObject ("w" + (i)).GetComponent <UILabel> ().text = basa (PlayerPrefs.GetInt ("lvl"), i);
 					MainGetGamObject ("p" + (i)).transform.localScale = Vector3.zero;
@@ -193,7 +185,7 @@ public class Main : MonoBehaviour
 	}	
 	public static void Coin_Panel ()
 	{
-		Debug.Log ("Coin_Panel");
+		//Debug.Log ("Coin_Panel");
 		TweenPosition tp = MainGetGamObject ("Panel_Buy_Coin").AddComponent<TweenPosition> ();
 
 		if (tp.gameObject.transform.localPosition.x == 0)
@@ -212,7 +204,7 @@ public class Main : MonoBehaviour
 	}
 	public static void Heart_Panel ()
 	{
-		Debug.Log ("Heart_Panel");
+		//Debug.Log ("Heart_Panel");
 		TweenPosition tp = MainGetGamObject ("Panel_Buy_Heart").AddComponent<TweenPosition> ();
 
 		if (tp.gameObject.transform.localPosition.x == 0)
@@ -300,14 +292,14 @@ public class Main : MonoBehaviour
 	public static void HeartUp (float _heart)
 	{	
 
-		MainGetGamObject ("HeartLine").GetComponent <UISprite> ().fillAmount = _heart;//(float)((float)PlayerPrefs.GetInt ("Heart") / 10f);	
-		MainGetGamObject ("Blod").GetComponent <UISprite> ().fillAmount = 1f - _heart;//(float)((float)PlayerPrefs.GetInt ("Heart") / 10f);	
+		MainGetGamObject ("HeartLine").GetComponent <UISprite> ().fillAmount = _heart;
+		MainGetGamObject ("Blod").GetComponent <UISprite> ().fillAmount = 1f - _heart;
 
 	}
 	
 	public static void buy (string ProductId )
 	{		
-		PlayerPrefs.SetInt ("Ad", 1);	
+		//PlayerPrefs.SetInt ("Ad", 1);	
 		GameObject.Find ("Music").SendMessage ("onCoin");
 		onAchivment ();
 	}
@@ -343,19 +335,14 @@ public class Main : MonoBehaviour
 
 	public static void onShowInterstitial ()
 	{
-		Debug.Log ("onShowInterstitial");
+		//Debug.Log ("onShowInterstitial");
 		SX.GetComponent<SX_Ads> ().showWhenReadyNonRewarded ();
 	}
 
 	public static void onShowSmartBanner ()
 	{
-		Debug.Log ("onShowInterstitial");
+		//Debug.Log ("onShowInterstitial");
 		SX.GetComponent<SX_Ads> ().showWhenReadyBannerLoad ();
-	}
-
-	public static void onShow ()
-	{
-
 	}
 
 	public static void onAchivment ()
