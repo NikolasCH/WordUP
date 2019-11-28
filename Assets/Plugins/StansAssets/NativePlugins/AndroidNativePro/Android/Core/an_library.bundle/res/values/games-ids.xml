@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Google Play game services IDs.
+Save this file as res/values/games-ids.xml in your project.
+-->
+<resources>
+  <!-- app_id -->
+  <string name="app_id" translatable="false">429967561016</string>
+  <!-- package_name -->
+  <string name="package_name" translatable="false">com.sayrex.wordup</string>
+  <!-- achievement Новичок -->
+  <string name="achievement" translatable="false">CgkIuKLB4MEMEAIQBQ</string>
+  <!-- achievement 10 уровней подряд без траты жизней -->
+  <string name="achievement_10" translatable="false">CgkIuKLB4MEMEAIQBg</string>
+  <!-- achievement 25 уровней подряд без траты жизней -->
+  <string name="achievement_25" translatable="false">CgkIuKLB4MEMEAIQGg</string>
+  <!-- achievement 50 уровней подряд без траты жизней -->
+  <string name="achievement_50" translatable="false">CgkIuKLB4MEMEAIQGw</string>
+  <!-- achievement 1000 кристаллов -->
+  <string name="achievement_1000" translatable="false">CgkIuKLB4MEMEAIQBw</string>
+  <!-- achievement 2000 кристаллов -->
+  <string name="achievement_2000" translatable="false">CgkIuKLB4MEMEAIQFw</string>
+  <!-- achievement 3000 кристаллов -->
+  <string name="achievement_3000" translatable="false">CgkIuKLB4MEMEAIQGA</string>
+  <!-- achievement 5000 кристаллов -->
+  <string name="achievement_5000" translatable="false">CgkIuKLB4MEMEAIQGQ</string>
+  <!-- achievement 100 уровней -->
+  <string name="achievement_100" translatable="false">CgkIuKLB4MEMEAIQAA</string>
+  <!-- achievement 200 уровней -->
+  <string name="achievement_200" translatable="false">CgkIuKLB4MEMEAIQAQ</string>
+  <!-- achievement 300 уровней -->
+  <string name="achievement_300" translatable="false">CgkIuKLB4MEMEAIQAg</string>
+  <!-- achievement 400 уровней -->
+  <string name="achievement_400" translatable="false">CgkIuKLB4MEMEAIQAw</string>
+  <!-- achievement 500 уровней -->
+  <string name="achievement_500" translatable="false">CgkIuKLB4MEMEAIQBA</string>
+  <!-- achievement 600 уровней -->
+  <string name="achievement_600" translatable="false">CgkIuKLB4MEMEAIQCQ</string>
+  <!-- achievement 700 уровней -->
+  <string name="achievement_700" translatable="false">CgkIuKLB4MEMEAIQCg</string>
+  <!-- achievement 800 уровней -->
+  <string name="achievement_800" translatable="false">CgkIuKLB4MEMEAIQCw</string>
+  <!-- achievement 900 уровней -->
+  <string name="achievement_900" translatable="false">CgkIuKLB4MEMEAIQDA</string>
+  <!-- achievement 1000 уровней -->
+  <string name="achievement_1000_2" translatable="false">CgkIuKLB4MEMEAIQDQ</string>
+  <!-- achievement 2000 уровней -->
+  <string name="achievement_2000_2" translatable="false">CgkIuKLB4MEMEAIQDg</string>
+  <!-- achievement 3000 уровней -->
+  <string name="achievement_3000_2" translatable="false">CgkIuKLB4MEMEAIQDw</string>
+  <!-- achievement 4000 уровней -->
+  <string name="achievement_4000" translatable="false">CgkIuKLB4MEMEAIQEA</string>
+  <!-- achievement 5000 уровней -->
+  <string name="achievement_5000_2" translatable="false">CgkIuKLB4MEMEAIQEQ</string>
+  <!-- achievement 6000 уровней -->
+  <string name="achievement_6000" translatable="false">CgkIuKLB4MEMEAIQEg</string>
+  <!-- achievement 7000 уровней -->
+  <string name="achievement_7000" translatable="false">CgkIuKLB4MEMEAIQEw</string>
+  <!-- achievement 8000 уровней -->
+  <string name="achievement_8000" translatable="false">CgkIuKLB4MEMEAIQFA</string>
+  <!-- achievement 9000 уровней -->
+  <string name="achievement_9000" translatable="false">CgkIuKLB4MEMEAIQFQ</string>
+  <!-- achievement 10000 уровней -->
+  <string name="achievement_10000" translatable="false">CgkIuKLB4MEMEAIQFg</string>
+  <!-- leaderboard Уровни -->
+  <string name="leaderboard" translatable="false">CgkIuKLB4MEMEAIQCA</string>
+</resources>

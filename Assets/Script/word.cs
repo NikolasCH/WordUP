@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
-
+using SA.Android.Firebase.Analytics;
 public class word : Main
 {
 
@@ -14,7 +14,7 @@ public class word : Main
 	float _heart = 0;
 
 
-	void Awake ()
+	void Start ()
 	{
 		GameOwer = false;
 		OBJECTS = Objects;
@@ -82,14 +82,13 @@ public class word : Main
 				MainGetGamObject ("s" + (i)).GetComponent<TweenScale> ().ResetToBeginning ();
 				MainGetGamObject ("s" + (i)).GetComponent<TweenScale> ().delay = 0;
 				check_words ();
+
 			} else {
+
 				good_wait (MainGetGamObject ("w" + (i)));
-				//if (PlayerPrefs.GetInt ("Heart") < 10)
-					//PlayerPrefs.SetInt ("Heart", PlayerPrefs.GetInt ("Heart") + 1);
 				Destroy (MainGetGamObject ("s" + (i)).GetComponent<BoxCollider> ());
 				Destroy (MainGetGamObject ("wb" + (i)).GetComponent<BoxCollider> ());
 				MainGetGamObject ("wb" + (i)).GetComponent <UISprite> ().spriteName = "pravilnoe slovo";
-				//MainGetGamObject ("wb" + (i)).GetComponent <UISprite> ().alpha = 0.3f;
 
 				MainGetGamObject ("s" + (i)).GetComponent <UISprite> ().spriteName = "+ kristal";
 				MainGetGamObject ("s" + (i)).GetComponent<TweenScale> ().ResetToBeginning ();
@@ -97,6 +96,7 @@ public class word : Main
 				MainGetGamObject ("s" + (i)).GetComponent<TweenScale> ().enabled = true;
 				MainGetGamObject ("w" + (i)).GetComponent <UILabel> ().text = basa (PlayerPrefs.GetInt ("lvl"), i);
 				MainGetGamObject ("p" + (i)).transform.localScale = Vector3.zero;
+
 			}
 
 
@@ -108,6 +108,8 @@ public class word : Main
 
 	public void good_wait (GameObject obj)
 	{
+		PlayerPrefs.SetInt ( "Add_Heart", PlayerPrefs.GetInt ("Add_Heart")+1);
+		Fill_Heart(((float)PlayerPrefs.GetInt ("Add_Heart")-1f)/5f);//MainGetGamObject ("Add_Heart").GetComponent<UISprite>().fillAmount);
 		GameOwer = true;
 		GameObject tObj = MainGetGamObject ("CompleteWord");
 		tObj.transform.parent = MainGetGamObject ("obj").transform;
@@ -126,12 +128,38 @@ public class word : Main
 
 	public void bad_wait ()
 	{
+
+		AN_FirebaseAnalytics.LogEvent("Dad_word");
 		if (MainGetGamObject ("Music"))
 			MainGetGamObject ("Music").SendMessage ("onWrong");
 	}
 
 	public  void good ()
 	{	
+		MainGetGamObject ("bg").SetActive (true);
+		AN_FirebaseAnalytics.LogEvent("Next_Level");
+
+		int reward = 10;
+
+		MainGetGamObject ("heart_img").GetComponent<UISprite>().enabled = true;
+
+		if (PlayerPrefs.GetInt ("Heart") < 10){
+			
+			if(PlayerPrefs.GetInt ("Add_Heart")>=5){
+				PlayerPrefs.SetInt ("Add_Heart",0);
+				PlayerPrefs.SetInt ("Heart", PlayerPrefs.GetInt ("Heart") + 1);
+				MainGetGamObject ("heart_img").GetComponent<UISprite>().spriteName ="+jizn";
+			}else
+				MainGetGamObject ("heart_img").GetComponent<UISprite>().enabled = false;
+
+			MainGetGamObject ("coin_b").GetComponent<UILabel>().text ="+"+ reward;
+		}else{
+			MainGetGamObject ("heart_img").GetComponent<UISprite>().spriteName ="_1";
+			reward *= PlayerPrefs.GetInt ("OpenWord")==1 ? 2 : 3;
+			MainGetGamObject ("coin_b").GetComponent<UILabel>().text ="+"+ reward;
+		}
+
+
 		MainGetGamObject ("Heart").GetComponent<TweenScale> ().ResetToBeginning ();
 		MainGetGamObject ("Heart").GetComponent<TweenScale> ().enabled = true;
 		heart = (float)((float)PlayerPrefs.GetInt ("Heart") / 10f);
@@ -151,7 +179,7 @@ public class word : Main
 		PlayerPrefs.SetInt ("Hearts", 0);
 		PlayerPrefs.SetInt ("timer", 0);
 		PlayerPrefs.SetInt ("lvl", PlayerPrefs.GetInt ("lvl") + 1);
-		PlayerPrefs.SetInt ("Coin", PlayerPrefs.GetInt ("Coin") + 30);
+		PlayerPrefs.SetInt ("Coin", PlayerPrefs.GetInt ("Coin") + reward);
 
 		for (int i=0; i<6; i++)
 			PlayerPrefs.SetInt ("s" + (i), 0);
@@ -164,7 +192,8 @@ public class word : Main
 		LevelUp ();
 		CoinUp ();
 		
-		MainGetGamObject ("bg").SetActive (true);
+
+
 
 
 		MainGetGamObject ("CompleteWord").GetComponent <UILabel> ().text = word;		
@@ -172,7 +201,6 @@ public class word : Main
 		postScoreToLeaderBoard (PlayerPrefs.GetInt ("lvl"));		
 		onAchivment ();
 	}
-
 }
 
 

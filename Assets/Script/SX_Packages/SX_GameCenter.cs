@@ -3,14 +3,17 @@ using System;
 using SA.CrossPlatform.GameServices;
 using SA.Android;
 using SA.CrossPlatform.UI;
+using SA.Android.Firebase.Analytics;
+
 public class SX_GameCenter : MonoBehaviour {
+    
 #pragma warning disable 649
 
     public UM_iScore iScore;
 
     public int Archievements =0;
     public int UnlockedArchievements =0;
-    public string iLeaderboardId = "CgkIuKLB4MEMEAIQCA";
+    public string iLeaderboardId = "CgkIw7PKmfEVEAIQAA";
 
     private void Start() {
 
@@ -30,17 +33,23 @@ public class SX_GameCenter : MonoBehaviour {
         var client = UM_GameService.AchievementsClient;
         client.ShowUI((result) => {});
     }
+
+    public bool SignedIn(){
+        var UM_client = UM_GameService.SignInClient;
+        return UM_client.PlayerInfo.State == UM_PlayerState.SignedIn;
+    }
     
     public void unlockAchievement (string achievementId){
 
         var client = UM_GameService.AchievementsClient;
 
-        var UM_client = UM_GameService.SignInClient;
-
-        if (UM_client.PlayerInfo.State == UM_PlayerState.SignedIn) 
-            client.Unlock(achievementId, (result) => { if(result.IsSucceeded) {Debug.Log("Unlocked");}});
-
-        //UM_DialogsUtility.ShowMessage("unlockAchievement", achievementId + " " + msg);    
+        if (SignedIn()) 
+            client.Unlock(achievementId, (result) => { 
+                if(result.IsSucceeded) {   
+                    PlayerPrefs.SetInt (achievementId, 1);       
+                	AN_FirebaseAnalytics.LogEvent("unlocked_achievement");
+                }
+            });  
     }
 
      public void incrementAchievement (string achievementId, int numSteps){
@@ -60,14 +69,11 @@ public class SX_GameCenter : MonoBehaviour {
      {
         var client = UM_GameService.AchievementsClient;
 
-        var UM_client = UM_GameService.SignInClient;
-
-        if (UM_client.PlayerInfo.State == UM_PlayerState.SignedIn) 
+        if (SignedIn()) 
             client.Load(result => 
             {
                 if(result.IsSucceeded) 
                 {
-
                     Archievements = result.Achievements.Count;
 
                     UnlockedArchievements = 0;
@@ -78,11 +84,10 @@ public class SX_GameCenter : MonoBehaviour {
 
                          if(achievement.State==UM_AchievementState.UNLOCKED)
                             UnlockedArchievements++;
-
                     }
 
-                    //if(UnlockedArchievements>0 || Archievements>0)
-                    //   Main.FillAchievements((float)UnlockedArchievements/(float)Archievements);
+                   // if(UnlockedArchievements>0 || Archievements>0)
+                        //Main.FillAchievements((float)UnlockedArchievements/(float)Archievements);
 
                         //UM_DialogsUtility.ShowMessage("unlockAchievement", UnlockedArchievements + " " + Archievements);  
                 } 
@@ -112,9 +117,7 @@ public class SX_GameCenter : MonoBehaviour {
         if(leaderboardId==null)
             leaderboardId = iLeaderboardId;
 
-        var UM_client = UM_GameService.SignInClient;
-
-        if (UM_client.PlayerInfo.State == UM_PlayerState.SignedIn) 
+        if (SignedIn()) 
             client.SubmitScore(leaderboardId, score, context, (result) => {
                 if(result.IsSucceeded) {
                     Debug.Log("Score submitted successfully");

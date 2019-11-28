@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System;
-
+using SA.Android.Firebase.Analytics;
+using SA.CrossPlatform.UI;
 public class Cam : MonoBehaviour
 {
 	float timer = 0;
-	int second = 120;
+	int second = 180;
 	// Use this for initialization
 	void Start ()
 	{
@@ -20,6 +21,8 @@ public class Cam : MonoBehaviour
 		}
 
 		AddSeconds ();
+
+		Ask_Rate();
 	}
 
 	void  OnEnable ()
@@ -74,4 +77,37 @@ public class Cam : MonoBehaviour
 	{
 		PlayerPrefs.SetString ("DateTime", DateTime.Now.ToString ("yyyy-MM-dd HH:mm:ss.FF"));
 	}
+
+	 //Плавный пересчет баланса
+    public void TweenCoins (UILabel Obj, float time, float from, float to) 
+	{
+        StopCoroutine("TweenCoin");
+        StartCoroutine(TweenCoin( Obj, time, from, to));
+    }
+
+    IEnumerator TweenCoin( UILabel Obj, float time, float from, float to) 
+    {
+        int l = 0;
+        for (float t = 0; t < time; t += Time.deltaTime) {
+            float nt = Mathf.Clamp01( t / time );
+            nt = Mathf.Sin(nt * Mathf.PI * 0.5f);
+            int n = (int)Mathf.Lerp( from, to, nt );
+            if(l!=n){
+                Obj.text = (n).ToString();
+                l=n;
+            }
+            yield return 0;
+        }
+		Obj.text = to.ToString();
+    }	
+
+
+	   //Предложение поставить оценку приложению в магазине
+    public void Ask_Rate()
+    {
+        if (PlayerPrefs.GetInt("StoreRate")<PlayerPrefs.GetInt ("lvl")){
+            PlayerPrefs.SetInt("StoreRate", PlayerPrefs.GetInt("lvl")+100);
+            UM_ReviewController.RequestReview();
+        }
+    }
 }

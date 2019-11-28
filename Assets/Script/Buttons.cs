@@ -1,6 +1,6 @@
 using UnityEngine;
 using System.Collections;
-
+using SA.Android.Firebase.Analytics;
 public class Buttons : Main
 {
 	
@@ -45,20 +45,20 @@ public class Buttons : Main
 					MainGetGamObject ("word").GetComponent<word> ().OpenBtn (3);
 				if (name == "s4")
 					MainGetGamObject ("word").GetComponent<word> ().OpenBtn (4);
-				if (name == "s5")
+				if (name == "s5")//
 					MainGetGamObject ("word").GetComponent<word> ().OpenBtn (5);
 
-				if (name == "wb0" && PlayerPrefs.GetInt ("s0") == 1)
+				if (name == "wb0")// && PlayerPrefs.GetInt ("s0") == 1)
 					MainGetGamObject ("word").GetComponent<word> ().CheckOpenWord (0);
-				if (name == "wb1" && PlayerPrefs.GetInt ("s1") == 1)
+				if (name == "wb1")// && PlayerPrefs.GetInt ("s1") == 1)
 					MainGetGamObject ("word").GetComponent<word> ().CheckOpenWord (1);
-				if (name == "wb2" && PlayerPrefs.GetInt ("s2") == 1)
+				if (name == "wb2")// && PlayerPrefs.GetInt ("s2") == 1)
 					MainGetGamObject ("word").GetComponent<word> ().CheckOpenWord (2);
-				if (name == "wb3" && PlayerPrefs.GetInt ("s3") == 1)
+				if (name == "wb3")// && PlayerPrefs.GetInt ("s3") == 1)
 					MainGetGamObject ("word").GetComponent<word> ().CheckOpenWord (3);
-				if (name == "wb4" && PlayerPrefs.GetInt ("s4") == 1)
+				if (name == "wb4")// && PlayerPrefs.GetInt ("s4") == 1)
 					MainGetGamObject ("word").GetComponent<word> ().CheckOpenWord (4);
-				if (name == "wb5" && PlayerPrefs.GetInt ("s5") == 1)
+				if (name == "wb5")// && PlayerPrefs.GetInt ("s5") == 1)
 					MainGetGamObject ("word").GetComponent<word> ().CheckOpenWord (5);
 
 			}
@@ -77,19 +77,25 @@ public class Buttons : Main
 			}
 
 			if (name == "pack1")
-				Main.onBuy ("pack1");
+				Main.onBuy ("words_us_p1");
 			if (name == "pack2")
-				Main.onBuy ("pack2");
+				Main.onBuy ("words_us_p2");
 			if (name == "pack3")
-				Main.onBuy ("pack3");
+				Main.onBuy ("words_us_p3");
 			if (name == "pack4")
-				Main.onBuy ("pack4");
+				Main.onBuy ("words_us_p4");
 			if (name == "pack5")
-				Main.onBuy ("pack5");
+				Main.onBuy ("words_us_p5");
 
 			if (name == "fb")
 				Application.OpenURL ("https://www.facebook.com/SayrexGames");	
-			
+
+			if(gameObject.name=="Sharing"){
+				MainGetGamObject ("Question").GetComponent<TweenAlpha> ().ResetToBeginning ();
+				MainGetGamObject ("Question").GetComponent<TweenAlpha> ().Play(true);
+				
+				SX.GetComponent<SX_Sharing>().Sharing(); 
+			} 
 			
 			if (name == "gc") {
 				Main.onLeaderBoard ();	
@@ -114,6 +120,7 @@ public class Buttons : Main
 				if (PlayerPrefs.GetInt ("Coin") >= buyHeart) {
 					PlayerPrefs.SetInt ("Coin", PlayerPrefs.GetInt ("Coin") - buyHeart);
 					CoinUp ();
+					AN_FirebaseAnalytics.LogEvent("Buy_Full_Hearts");
 					PlayerPrefs.SetInt ("Heart", 10);
 					heart = (float)((float)PlayerPrefs.GetInt ("Heart") / 10f);
 					Heart_Panel ();

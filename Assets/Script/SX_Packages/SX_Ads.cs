@@ -132,7 +132,7 @@ public class SX_Ads : MonoBehaviour
     public void nonRewardedAdsLoad(){
             m_adsClient.NonRewardedAds.Load((result) => {
                 if (result.IsSucceeded) {
-                    Debug.Log("NonRewardedAds loaded");
+                   Debug.Log("Loaded NonRewardedAds: " + result.Error.Message);
                 } else {
                     Debug.Log("Failed to load NonRewardedAds: " + result.Error.Message);
                 }

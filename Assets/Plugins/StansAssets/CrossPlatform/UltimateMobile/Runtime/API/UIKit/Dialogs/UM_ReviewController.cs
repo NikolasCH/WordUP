@@ -26,10 +26,10 @@ namespace SA.CrossPlatform.UI
             string appName = Application.productName;
             string appIdentifier = Application.identifier;
 
-            string title = string.Format("Rate {0}!", appName); 
-            string message = string.Format("If you enjoy using {0}, please take a moment to rate it.Thanks for your support!", appName);
-            string noTitle = "No, thanks";
-            string rateTitle = "Rate";
+            string title = string.Format("Оценить в Google Play!", appName); 
+            string message = string.Format("Если вам понравилась игра, пожалуйста, найдите минутку и оцените её, спасибо за поддержку!", appName);
+            string noTitle = "НЕ ХОЧУ, СПАСИБО";
+            string rateTitle = "ХОРОШО";
 
             if (Application.isEditor) {
 

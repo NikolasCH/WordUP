@@ -17,7 +17,7 @@ public class menu : Main
 		Main.HeartUp (Main.heart);
 
 		LevelUp ();
-		CoinUp ();
+		GameObject.Find ("coin_lbl").GetComponent <UILabel>().text = PlayerPrefs.GetInt ("Coin").ToString();
 	}
 
 	public static void install ()
@@ -38,5 +38,7 @@ public class menu : Main
 		PlayerPrefs.SetInt ("Coin", 500);
 		PlayerPrefs.SetInt ("HIGHSCORE", 0);	
 		PlayerPrefs.SetInt ("Ad", 0);
+
+		PlayerPrefs.SetInt("StoreRate",5);
 	}
 }
