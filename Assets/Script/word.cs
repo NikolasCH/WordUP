@@ -170,9 +170,12 @@ public class word : Main
 				tips++;
 
 		if (tips == 1)
-			PlayerPrefs.SetInt ("good_", PlayerPrefs.GetInt ("tips") + 1);
+			PlayerPrefs.SetInt ("good_", PlayerPrefs.GetInt ("good_") + 1);
 		else
 			PlayerPrefs.SetInt ("good_", 0);
+
+		Debug.Log(PlayerPrefs.GetInt ("good_"));
+
 
 		PlayerPrefs.SetInt ("OpenPrice", 0);
 		PlayerPrefs.SetInt ("OpenLetter", 0);
