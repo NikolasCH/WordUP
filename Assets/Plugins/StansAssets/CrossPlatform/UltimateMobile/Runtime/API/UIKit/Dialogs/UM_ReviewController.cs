@@ -26,7 +26,7 @@ namespace SA.CrossPlatform.UI
             string appName = Application.productName;
             string appIdentifier = Application.identifier;
 
-            string title = string.Format("Оценить в Google Play!", appName); 
+            string title = string.Format("Оцените в Google Play:", appName); 
             string message = string.Format("Если вам понравилась игра, пожалуйста, найдите минутку и оцените её, спасибо за поддержку!", appName);
             string noTitle = "НЕ ХОЧУ, СПАСИБО";
             string rateTitle = "ХОРОШО";
@@ -58,6 +58,7 @@ namespace SA.CrossPlatform.UI
 
                     dialog.SetPositiveButton(rateTitle, () => {
                         //This code will take user to your app Play Market page
+                        PlayerPrefs.SetInt("StoreRate", PlayerPrefs.GetInt("lvl")+500);
                         System.Uri uri = new System.Uri("market://details?id=" + appIdentifier);
                         AN_Intent viewIntent = new AN_Intent(AN_Intent.ACTION_VIEW, uri);
                         AN_MainActivity.Instance.StartActivity(viewIntent);

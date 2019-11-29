@@ -2,11 +2,14 @@ using System;
 using System.Collections.Generic;
 using SA.Foundation.Templates;
 using SA.iOS.StoreKit;
+using UnityEngine;
 
 namespace SA.CrossPlatform.InApp
 {
     internal class UM_IOSInAppClient : UM_AbstractInAppClient, UM_iInAppClient, ISN_iSKPaymentTransactionObserver
     {
+        public const string k_UndefinedTransactionId = "undefined";
+        
         //--------------------------------------
         //  UM_AbstractInAppClient
         //--------------------------------------
@@ -14,6 +17,22 @@ namespace SA.CrossPlatform.InApp
         protected override void ConnectToService(Action<SA_iResult> callback) 
         {
             ISN_SKPaymentQueue.Init(callback.Invoke);
+        }
+
+        protected override void ConnectToService(IEnumerable<UM_ProductTemplate> products, Action<SA_iResult> callback)
+        {
+            ISN_SKPaymentQueue.Init(ConvertToIOSTemplates(products), callback.Invoke);
+        }
+
+        internal static List<ISN_SKProduct> ConvertToIOSTemplates(IEnumerable<UM_ProductTemplate> productTemplates)
+        {
+            var result = new List<ISN_SKProduct>();
+            foreach (var product in productTemplates)
+            {
+                result.Add(new ISN_SKProduct { ProductIdentifier = product.Id});
+            }
+
+            return result;
         }
 
         protected override Dictionary<string, UM_iProduct> GetServerProductsInfo() 
@@ -45,8 +64,10 @@ namespace SA.CrossPlatform.InApp
 
         public void FinishTransaction(UM_iTransaction transaction) 
         {
+            if(transaction.Id.Equals(k_UndefinedTransactionId))
+                return;
+            
             var t = (UM_IOSTransaction) transaction;
-
             var skPaymentTransaction = t.IosTransaction;
             ISN_SKPaymentQueue.FinishTransaction(skPaymentTransaction);
         }
@@ -65,6 +86,8 @@ namespace SA.CrossPlatform.InApp
             var um_transaction = new UM_IOSTransaction(transaction);
             switch (transaction.State) {
                 case ISN_SKPaymentTransactionState.Purchasing:
+                    if(transaction.HasError)  //otherwise we aren't interested.
+                        UpdateTransaction(um_transaction);
                     break;
                 case ISN_SKPaymentTransactionState.Purchased:
                 case ISN_SKPaymentTransactionState.Restored:

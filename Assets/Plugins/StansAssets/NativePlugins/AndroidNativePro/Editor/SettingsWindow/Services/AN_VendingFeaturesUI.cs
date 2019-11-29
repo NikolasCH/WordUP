@@ -60,21 +60,21 @@ namespace SA.Android
 
         protected override void OnServiceUI() 
         {
-            using (new SA_WindowBlockWithSpace(new GUIContent("Your license key"))) 
-            {
-                EditorGUILayout.HelpBox("RSA public key will be used for app licensing. &  in-app billing purchases",
-                                        MessageType.Info);
-
-                EditorGUILayout.LabelField("Base64-encoded RSA public key");
-
-                AN_Settings.Instance.RSAPublicKey = EditorGUILayout.TextArea(AN_Settings.Instance.RSAPublicKey, SA_PluginSettingsWindowStyles.TextArea, GUILayout.Height(95));
-                AN_Settings.Instance.RSAPublicKey = AN_Settings.Instance.RSAPublicKey.Trim();
-            }
-
             using (new SA_WindowBlockWithSpace(new GUIContent("Licensing "))) 
             {
                 EditorGUILayout.HelpBox("Licensing allows you to prevent unauthorized distribution of your App.", MessageType.Info);
                 AN_Settings.Instance.Licensing = SA_EditorGUILayout.ToggleFiled("API Status", AN_Settings.Instance.Licensing, SA_StyledToggle.ToggleType.EnabledDisabled);
+
+                if (AN_Settings.Instance.Licensing)
+                {
+                    EditorGUILayout.HelpBox("RSA public key will be used for app licensing. &  in-app billing purchases",
+                        MessageType.Info);
+
+                    EditorGUILayout.LabelField("Base64-encoded RSA public key");
+
+                    AN_Settings.Instance.RSAPublicKey = EditorGUILayout.TextArea(AN_Settings.Instance.RSAPublicKey, SA_PluginSettingsWindowStyles.TextArea, GUILayout.Height(95));
+                    AN_Settings.Instance.RSAPublicKey = AN_Settings.Instance.RSAPublicKey.Trim();
+                }
             }
 
             using (new SA_WindowBlockWithSpace(new GUIContent("In-App Products List"))) 

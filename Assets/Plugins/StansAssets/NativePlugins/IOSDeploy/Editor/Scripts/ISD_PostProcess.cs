@@ -101,8 +101,8 @@ namespace SA.iOS.XCode
             var infoPlistPath = projectPath + "/Info.plist";
             infoPlist.ReadFromFile(infoPlistPath);
 
-            foreach(var variable in ISD_Settings.Instance.PlistVariables) {
-
+            foreach(var variable in ISD_Settings.Instance.PlistVariables) 
+            { 
                PlistElement plistVariable = null;
                switch (variable.Type) 
                {

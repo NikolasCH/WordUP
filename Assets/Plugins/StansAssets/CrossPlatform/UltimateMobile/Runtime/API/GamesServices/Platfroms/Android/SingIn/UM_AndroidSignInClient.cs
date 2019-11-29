@@ -20,37 +20,49 @@ namespace SA.CrossPlatform.GameServices
         {
             SA_MonoEvents.OnApplicationPause.AddSafeListener(this, paused => 
             {
-                if(!paused) 
+                if (paused) return;
+                
+                //We do not want to do Silent SignIn on resume in case player not yet signed.
+                if (PlayerInfo.State == UM_PlayerState.SignedOut) 
                 {
-                    //We do not want to do Silent SignIn on resume in case player not yet signed.
-                    if (PlayerInfo.State == UM_PlayerState.SignedOut) 
-                    {
-                        // In case it's not null, this means we are missing something, so we will do  Silent SignIn
-                        // The case may happen because we sending fail event on proxy Activity Destroy event.
-                        // But proxy Activity Destroy not always means that player is failed to log in.
-                        // We have to send fail event on proxy Activity Destroy, since if we not, in cases where google and our proxy
-                        // activity both are destroyed, we will not get any event.
-                        if (AN_GoogleSignIn.GetLastSignedInAccount() == null) 
-                            return;
-                    }
-
-                    //We need to perform Silent SignIn every time we back from pause
-                    SignInClient.SilentSignIn(silentSignInResult => 
-                    {
-                        if (silentSignInResult.IsSucceeded) 
-                            RetrievePlayer(result => { });
-                        else 
-                            //looks Like player singed out
-                            UpdatePlayerInfo(null);
-                    });
+                    // In case it's not null, this means we are missing something, so we will do  Silent SignIn
+                    // The case may happen because we sending fail event on proxy Activity Destroy event.
+                    // But proxy Activity Destroy not always means that player is failed to log in.
+                    // We have to send fail event on proxy Activity Destroy, since if we not, in cases where google and our proxy
+                    // activity both are destroyed, we will not get any event.
+                    if (AN_GoogleSignIn.GetLastSignedInAccount() == null) 
+                        return;
                 }
+
+                //We need to perform Silent SignIn every time we back from pause
+                SignInClient.SilentSignIn(silentSignInResult => 
+                {
+                    if (silentSignInResult.IsSucceeded) 
+                        RetrievePlayer(result => { });
+                    else 
+                        //looks Like player singed out
+                        UpdatePlayerInfo(null);
+                });
             });
         }
 
         protected override void StartSingInFlow(Action<SA_Result> callback) 
         {
             m_ResolvedErrors.Clear();
-            StartSingInFlowInternal(callback);
+            var response =  AN_GoogleApiAvailability.IsGooglePlayServicesAvailable();
+            if(response == AN_ConnectionResult.SUCCESS) 
+            {
+                StartSingInFlowInternal(callback);
+            } 
+            else 
+            {
+                AN_GoogleApiAvailability.MakeGooglePlayServicesAvailable((result) => {
+                    if(result.IsSucceeded)
+                        StartSingInFlowInternal(callback);
+                    else
+                        callback.Invoke(new SA_Result(new SA_Error(AN_ConnectionResult.SERVICE_MISSING, "SERVICE_MISSING")));
+                });
+            }
         }
 
         private void StartSingInFlowInternal(Action<SA_Result> callback) 
@@ -91,7 +103,7 @@ namespace SA.CrossPlatform.GameServices
                                         callback.Invoke(new SA_Result(interactiveSignInResult.Error));
                                     } else {
                                         //Nope, this is new one, let's try to resolve it
-                                        AN_Logger.Log("Trying to resolved failed sigin-in result with code: " + errorCode);
+                                        AN_Logger.Log("Trying to resolved failed sign-in result with code: " + errorCode);
                                         StartSingInFlowInternal(callback);
                                     } 
                                     break;

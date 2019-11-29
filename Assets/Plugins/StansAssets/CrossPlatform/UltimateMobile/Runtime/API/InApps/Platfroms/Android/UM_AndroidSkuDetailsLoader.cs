@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using SA.Android;
-using SA.Android.Vending.Billing;
+using System.Linq;
+using SA.Android.Utilities;
 using SA.Android.Vending.BillingClient;
 using SA.Foundation.Templates;
 using UnityEngine;
@@ -11,6 +11,12 @@ namespace SA.CrossPlatform.InApp
     internal class UM_AndroidSkuDetailsLoader : AN_iSkuDetailsResponseListener
     {
         private event Action<List<AN_SkuDetails>> m_Callback;
+        private readonly List<AN_SkuDetails> m_SettingsInAppProducts;
+
+        public UM_AndroidSkuDetailsLoader(List<AN_SkuDetails> products)
+        {
+            m_SettingsInAppProducts = products;
+        }
 
         public void LoadSkuDetails(AN_BillingClient client, AN_BillingClient.SkuType skuType, Action<List<AN_SkuDetails>> callback)
         {
@@ -19,7 +25,7 @@ namespace SA.CrossPlatform.InApp
             paramsBuilder.SetType(skuType);
             
             var skusList = new List<string>();
-            foreach (var product in AN_Settings.Instance.InAppProducts)
+            foreach (var product in m_SettingsInAppProducts)
             {
                 if (product.Type == skuType)
                 {
@@ -37,10 +43,10 @@ namespace SA.CrossPlatform.InApp
             if (billingResult.IsSucceeded)
             {
                 var result = new List<AN_SkuDetails>();
-                foreach (var product in skuDetailsList)
+                foreach (var nativeProduct in skuDetailsList)
                 {
-                    var settingsProduct = GetProductFromSettings(product.Sku);
-                    JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(product), settingsProduct);
+                    var settingsProduct = GetProductFromSettings(nativeProduct.Sku);
+                    AN_BillingClient.OverrideLocalSkuWithNativeData(settingsProduct, nativeProduct); 
                     result.Add(settingsProduct);
                 }
                 m_Callback.Invoke(result);
@@ -53,7 +59,7 @@ namespace SA.CrossPlatform.InApp
 
         private AN_SkuDetails GetProductFromSettings(string sku)
         {
-           foreach (var product in AN_Settings.Instance.InAppProducts)
+           foreach (var product in m_SettingsInAppProducts)
            {
                if (product.Sku.Equals(sku))
                {

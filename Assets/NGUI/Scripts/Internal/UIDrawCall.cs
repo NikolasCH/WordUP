@@ -969,7 +969,7 @@ public class UIDrawCall : MonoBehaviour
 		UIDrawCall newDC = go.GetComponent<UIDrawCall>();
 #else
 		GameObject go = new GameObject(name);
-		DontDestroyOnLoad(go.transform);
+		DontDestroyOnLoad(go);
 		UIDrawCall newDC = go.AddComponent<UIDrawCall>();
 #endif
 		// Create the draw call

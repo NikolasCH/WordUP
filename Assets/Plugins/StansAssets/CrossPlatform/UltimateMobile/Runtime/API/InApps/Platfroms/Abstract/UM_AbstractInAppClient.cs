@@ -6,13 +6,13 @@ using SA.CrossPlatform.Analytics;
 
 namespace SA.CrossPlatform.InApp
 {
-    public abstract class UM_AbstractInAppClient 
+    internal abstract class UM_AbstractInAppClient 
     {
-        private bool m_IsConnected = false;
-        private bool m_IsConnectionInProgress = false;
+        private bool m_IsConnected;
+        private bool m_IsConnectionInProgress;
+        private bool m_IsObserverRegistered;
         private event Action<SA_iResult> m_OnConnect = delegate { };
         private Dictionary<string, UM_iProduct> m_Products = new Dictionary<string, UM_iProduct>();
-        private bool m_IsObserverRegistered = false;
         protected UM_iTransactionObserver m_Observer;
 
         //--------------------------------------
@@ -20,6 +20,7 @@ namespace SA.CrossPlatform.InApp
         //--------------------------------------
 
         protected abstract void ConnectToService(Action<SA_iResult> callback);
+        protected abstract void ConnectToService(IEnumerable<UM_ProductTemplate> products, Action<SA_iResult> callback);
         protected abstract void ObserveTransactions();
 
         /// <summary>
@@ -32,7 +33,12 @@ namespace SA.CrossPlatform.InApp
         //  Public Methods
         //--------------------------------------
 
-        public void Connect(Action<SA_iResult> callback) 
+        public void Connect(Action<SA_iResult> callback)
+        {
+            Connect(null, callback);
+        }
+        
+        public void Connect(IEnumerable<UM_ProductTemplate> products, Action<SA_iResult> callback)
         {
             if (m_IsConnected) 
             {
@@ -44,7 +50,7 @@ namespace SA.CrossPlatform.InApp
             if (m_IsConnectionInProgress) { return; }
             m_IsConnectionInProgress = true;
 
-            ConnectToService(result => 
+            ConnectToTheBillingService(products,result => 
             {
                 if(result.IsSucceeded) 
                 {
@@ -67,6 +73,14 @@ namespace SA.CrossPlatform.InApp
             });
         }
 
+        private void ConnectToTheBillingService(IEnumerable<UM_ProductTemplate> products, Action<SA_iResult> callback)
+        {
+            if (products == null)
+                ConnectToService(callback);
+            else 
+                ConnectToService(products, callback);
+        }
+        
         public void SetTransactionObserver(UM_iTransactionObserver observer) 
         {
             if(m_Observer != null) 
@@ -110,9 +124,7 @@ namespace SA.CrossPlatform.InApp
         /// </summary>
         public bool IsConnected 
         {
-            get {
-                return m_IsConnected;
-            }
+            get { return m_IsConnected; }
         }
 
         /// <summary>
@@ -121,10 +133,7 @@ namespace SA.CrossPlatform.InApp
         /// </summary>
         public IEnumerable<UM_iProduct> Products 
         {
-            get 
-            {
-                return new List<UM_iProduct>(m_Products.Values);
-            }
+            get { return new List<UM_iProduct>(m_Products.Values); }
         }
 
         //--------------------------------------

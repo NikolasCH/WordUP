@@ -43,7 +43,7 @@ namespace SA.CrossPlatform
             }
         }
         
-        private const string AD_MOB_SDK_DOWNLOAD_URL = "https://github.com/googleads/googleads-mobile-unity/releases/download/v3.18.3/GoogleMobileAds-v3.18.3.unitypackage";
+        private const string AD_MOB_SDK_DOWNLOAD_URL = "https://github.com/googleads/googleads-mobile-unity/releases/download/v4.0.0/GoogleMobileAds-v4.0.0.unitypackage";
         private const string UNITY_ADS_SDK_DOWNLOAD_URL = "https://assetstore.unity.com/packages/add-ons/services/unity-monetization-3-0-66123";
 
         private UM_AdsResolver m_ServiceResolver;

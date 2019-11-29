@@ -1,23 +1,20 @@
 using System;
-using System.Collections.Generic;
-using UnityEngine;
 using SA.iOS.StoreKit;
 using SA.Foundation.Time;
-
 
 namespace SA.CrossPlatform.InApp
 {
     [Serializable]
     internal class UM_IOSTransaction : UM_AbstractTransaction<ISN_iSKPaymentTransaction>, UM_iTransaction
     {
-        
         public UM_IOSTransaction(ISN_iSKPaymentTransaction transaction)
         {
             m_id = transaction.TransactionIdentifier;
             m_productId = transaction.ProductIdentifier;
             m_unixTimestamp = SA_Unix_Time.ToUnixTime(transaction.Date);
 
-            switch (transaction.State) {
+            switch (transaction.State) 
+            {
                 case ISN_SKPaymentTransactionState.Deferred:
                     m_state = UM_TransactionState.Deferred;
                     break;
@@ -29,6 +26,10 @@ namespace SA.CrossPlatform.InApp
                     break;
                 case ISN_SKPaymentTransactionState.Purchased:
                     m_state = UM_TransactionState.Purchased;
+                    break;
+                case ISN_SKPaymentTransactionState.Purchasing:
+                    m_state = UM_TransactionState.Failed;
+                    m_id = UM_IOSInAppClient.k_UndefinedTransactionId;
                     break;
             }
 

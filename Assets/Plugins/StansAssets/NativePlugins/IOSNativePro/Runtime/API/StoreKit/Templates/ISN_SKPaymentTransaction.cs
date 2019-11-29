@@ -26,40 +26,34 @@ namespace SA.iOS.StoreKit
             m_state = state;
         }
 
-        public string ProductIdentifier {
-            get {
-                return m_productIdentifier;
-            }
+        public string ProductIdentifier 
+        {
+            get { return m_productIdentifier; }
         }
 
-        public string TransactionIdentifier {
-            get {
-                return m_transactionIdentifier;
-            }
+        public string TransactionIdentifier 
+        {
+            get { return m_transactionIdentifier; }
         }
 
-        public DateTime Date {
-            get {
-                return SA_Unix_Time.ToDateTime(m_unixDate);
-            }
+        public DateTime Date 
+        {
+            get { return SA_Unix_Time.ToDateTime(m_unixDate); }
         }
 
-        public ISN_SKPaymentTransactionState State {
-            get {
-                return m_state;
-            }
+        public ISN_SKPaymentTransactionState State 
+        {
+            get { return m_state; }
         }
 
-        public ISN_SKProduct Product {
-            get {
-                return ISN_SKPaymentQueue.GetProductById(m_productIdentifier);
-            }
+        public ISN_SKProduct Product 
+        {
+            get { return ISN_SKPaymentQueue.GetProductById(m_productIdentifier); }
         }
 
-        public ISN_iSKPaymentTransaction OriginalTransaction {
-            get {
-                return m_originalTransaction;
-            }
+        public ISN_iSKPaymentTransaction OriginalTransaction 
+        {
+            get { return m_originalTransaction; }
         }
     }
 }

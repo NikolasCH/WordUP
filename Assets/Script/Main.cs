@@ -82,12 +82,12 @@ public class Main : MonoBehaviour
 	//Начинаем игру
 	public static void Play ()
 	{
-		SX.GetComponent<SX_Ads>().smartBanneShow();
+		if(PlayerPrefs.GetInt ("lvl")>3)
+			SX.GetComponent<SX_Ads>().smartBanneShow();
 
 		Fill_Heart (((float)PlayerPrefs.GetInt ("Add_Heart")/5f));
-
-		if(Random.Range(0, 3)>=1)
-			SX.GetComponent<SX_Ads>().showWhenReadyNonRewarded();
+		if(Random.Range(0, 8)>=6 && PlayerPrefs.GetInt ("Ad")!=1 && PlayerPrefs.GetInt ("lvl")>5)
+			onShowInterstitial();
 
 		PlayerPrefs.SetInt ("OpenWord", 0);
 
@@ -325,7 +325,7 @@ public class Main : MonoBehaviour
 	
 	public static void buy (string ProductId )
 	{		
-		//PlayerPrefs.SetInt ("Ad", 1);	
+		PlayerPrefs.SetInt ("Ad", 1);	
 		GameObject.Find ("Music").SendMessage ("onCoin");
 		onAchivment ();
 		AN_FirebaseAnalytics.LogEvent("Purchased");
@@ -362,7 +362,7 @@ public class Main : MonoBehaviour
 
 	public static void onShowInterstitial ()
 	{
-		//Debug.Log ("onShowInterstitial");
+		Debug.Log ("onShowInterstitial");
 		SX.GetComponent<SX_Ads> ().showWhenReadyNonRewarded ();
 	}
 

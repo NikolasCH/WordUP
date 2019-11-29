@@ -133,6 +133,8 @@ namespace SA.Android.Utilities
         public object ConvertObjectData(object param) {
             if (param is string) {
                 return param.ToString();
+            } else if (param is Enum) {
+                return param.ToString();
             } else if (param is bool) {
                 return param;
             } else if (param is int) {

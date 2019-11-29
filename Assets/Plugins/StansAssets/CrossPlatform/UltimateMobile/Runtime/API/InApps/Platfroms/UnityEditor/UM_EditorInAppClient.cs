@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using SA.iOS;
 using SA.Android;
+using SA.Android.Vending.BillingClient;
 using SA.CrossPlatform.UI;
 using SA.Foundation.Templates;
+using SA.iOS.StoreKit;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -11,7 +13,7 @@ namespace SA.CrossPlatform.InApp
 {
     internal class TransactionsList
     {
-        public List<string> productIds = new List<string>();
+        public readonly List<string> productIds = new List<string>();
     }
     
     internal class UM_EditorInAppClient : UM_AbstractInAppClient, UM_iInAppClient
@@ -19,7 +21,7 @@ namespace SA.CrossPlatform.InApp
         private const string k_TransactionsKey = "um_editor_inapp_transactions";
 
         private TransactionsList m_ActiveTransactions;
-        
+        private IEnumerable<UM_ProductTemplate> m_InitialTemplates;
         
         //--------------------------------------
         //  UM_AbstractInAppClient
@@ -32,22 +34,28 @@ namespace SA.CrossPlatform.InApp
             });
         }
 
+        protected override void ConnectToService(IEnumerable<UM_ProductTemplate> products, Action<SA_iResult> callback)
+        {
+            m_InitialTemplates = products;
+            ConnectToService(callback);
+        }
+
         protected override Dictionary<string, UM_iProduct> GetServerProductsInfo() 
         {
 
             var products = new Dictionary<string, UM_iProduct>();
-#if UNITY_EDITOR
 
+#if UNITY_EDITOR
             switch (UnityEditor.EditorUserBuildSettings.activeBuildTarget) {
                 case UnityEditor.BuildTarget.Android:
-                    foreach (var product in AN_Settings.Instance.InAppProducts) {
+                    foreach (var product in GetAndroidProducts()) {
                         UM_AndroidProduct p = new UM_AndroidProduct();
                         p.Override(product);
                         products.Add(p.Id, p);
                     }
                     break;
                 default:
-                    foreach (var product in ISN_Settings.Instance.InAppProducts) {
+                    foreach (var product in GetIOSProducts()) {
                         UM_IOSProduct p = new UM_IOSProduct();
                         p.Override(product);
                         products.Add(p.Id, p);
@@ -55,8 +63,23 @@ namespace SA.CrossPlatform.InApp
                     break;
             }
 #endif
-
             return products;
+        }
+
+        private IEnumerable<AN_SkuDetails> GetAndroidProducts()
+        {
+            if (m_InitialTemplates == null)
+                return AN_Settings.Instance.InAppProducts;
+            
+            return UM_AndroidInAppClient.ConvertToAndroidTemplates(m_InitialTemplates);
+        }
+        
+        private IEnumerable<ISN_SKProduct> GetIOSProducts()
+        {
+            if (m_InitialTemplates == null)
+                return ISN_Settings.Instance.InAppProducts;
+            
+            return UM_IOSInAppClient.ConvertToIOSTemplates(m_InitialTemplates);
         }
 
         protected override void ObserveTransactions() {

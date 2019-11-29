@@ -49,34 +49,32 @@ namespace SA.Android.Vending.BillingClient
         }
 
         //internal
-        [SerializeField] string m_Type;
-        
-        [SerializeField] string m_OrderId;
-        [SerializeField] string m_PackageName;
-        [SerializeField] long m_PurchaseTime;
-        [SerializeField] int m_PurchaseState;
-        [SerializeField] string m_DeveloperPayload;
-        [SerializeField] string m_PurchaseToken;
-        [SerializeField] bool m_IsAutoRenewing;
-        [SerializeField] bool m_IsAcknowledged;
-        [SerializeField] string m_OriginalJson;
-        [SerializeField] string m_Signature;
-        [SerializeField] string m_Sku;
+        [SerializeField] private string m_Type;
 
+        [SerializeField] private string m_OrderId;
+        [SerializeField] private string m_PackageName;
+        [SerializeField] private long m_PurchaseTime;
+        [SerializeField] private int m_PurchaseState;
+        [SerializeField] private string m_DeveloperPayload;
+        [SerializeField] private string m_PurchaseToken;
+        [SerializeField] private bool m_IsAutoRenewing;
+        [SerializeField] private bool m_IsAcknowledged;
+        [SerializeField] private string m_OriginalJson;
+        [SerializeField] private string m_Signature;
+        [SerializeField] private string m_Sku;
 
-        //For editor only
-        public AN_Purchase(string productId, string type, string developerPayload) {
-            m_Type = type;
-            m_Sku = productId;
-            m_DeveloperPayload = developerPayload;
-
+        public AN_Purchase(string sku, AN_BillingClient.SkuType type) {
+            m_Type = type.ToString();
+            m_Sku = sku;
+            
             m_PackageName = Application.identifier;
-            m_OrderId = SA_IdFactory.RandomString;
-            m_PurchaseTime = SA_Unix_Time.ToUnixTime(DateTime.Now);
+            m_OrderId = string.Empty;
+            m_PurchaseTime = 0;
             m_PurchaseState = 0;
-            m_PurchaseToken = SA_IdFactory.RandomString;
-            m_Signature = SA_IdFactory.RandomString;
-
+            m_PurchaseToken = string.Empty;
+            m_Signature = string.Empty;
+            m_DeveloperPayload = string.Empty;
+            
             m_IsAutoRenewing = false;
             m_IsAcknowledged = false;
             m_OriginalJson = JsonUtility.ToJson(this);

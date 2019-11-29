@@ -38,6 +38,9 @@ namespace SA.CrossPlatform.InApp
             }
         }
 
+        /// <summary>
+        /// Utilities collection for the Android platform
+        /// </summary>
         public static UM_AndroidInAppUtilities AndroidUtilities
         {
             get

@@ -24,32 +24,26 @@ namespace SA.Android
         public const string DEPENDENCIES_FOLDER = EDITOR_FOLDER + "Dependencies/";
         public const string DEPENDENCIES_FILE_PATH = DEPENDENCIES_FOLDER + "AN_Dependencies.xml";
 
-
         public const string ANDROID_FOLDER = ANDROID_NATIVE_FOLDER + "Android/";
         public const string ANDROID_FOLDER_DISABLED = ANDROID_NATIVE_FOLDER + "AndroidDisabled/";
 
         public const string ANDROID_INTERNAL_FOLDER = ANDROID_FOLDER + "Internal/";
         public const string ANDROID_INTERNAL_FOLDER_DISABLED = ANDROID_FOLDER_DISABLED + "Internal/";
-
-
+        
         public const string ANDROID_MAVEN_FOLDER = ANDROID_FOLDER + "Maven/";
         public const string ANDROID_MAVEN_FOLDER_DISABLED = ANDROID_FOLDER_DISABLED + "Maven/";
-
-
+        
         public const string ANDROID_CORE_LIB_PATH = ANDROID_NATIVE_FOLDER + "Android/Core/an_library.bundle/";
 
         public const string ANDROID_RES_PATH = ANDROID_CORE_LIB_PATH + "res/";
         public const string ANDROID_VALUES_PATH = ANDROID_RES_PATH + "values/";
         public const string ANDROID_DRAWABLE_PATH = ANDROID_RES_PATH + "drawable/";
         public const string ANDROID_RAW_PATH = ANDROID_RES_PATH + "raw/";
-
-
+        
         public const string ANDROID_MANIFEST_FILE_PATH = ANDROID_CORE_LIB_PATH + "AndroidManifest.xml";
         public const string ANDROID_GAMES_IDS_FILE_PATH = ANDROID_VALUES_PATH + "games-ids.xml";
-
-
-        public const string ANDROID_TEST_SCENE_PATH = ANDROID_NATIVE_FOLDER + "Tests/Scene/AN_TestScene.unity"; 
-
+        
+        public const string ANDROID_TEST_SCENE_PATH = ANDROID_NATIVE_FOLDER + "Tests/Scene/AN_TestScene.unity";
 
         //--------------------------------------
         // Editor Settings
@@ -87,13 +81,6 @@ namespace SA.Android
         public bool LocalNotifications;
         public bool SkipPermissionsDialog;
 
-
-        //--------------------------------------
-        // Support v4
-        //--------------------------------------
-
-
-
         //--------------------------------------
         // Billing
         //--------------------------------------
@@ -122,39 +109,22 @@ namespace SA.Android
 
         protected override string BasePath 
         {
-            get 
-            { 
-                return ANDROID_NATIVE_FOLDER; 
-            }
+            get { return ANDROID_NATIVE_FOLDER; }
         }
 
-
-        
         public override string PluginName 
         {
-            get 
-            {
-                return PLUGIN_NAME;
-            }
+            get { return PLUGIN_NAME; }
         }
 
         public override string DocumentationURL 
         {
-            get 
-            {
-                return DOCUMENTATION_URL;
-            }
+            get { return DOCUMENTATION_URL; }
         }
-
-
+        
         public override string SettingsUIMenuItem 
         {
-            get 
-            {
-                return SA_Config.EDITOR_MENU_ROOT + "Android/Services";
-            }
+            get { return SA_Config.EDITOR_MENU_ROOT + "Android/Services"; }
         }
-
-
     }
 }

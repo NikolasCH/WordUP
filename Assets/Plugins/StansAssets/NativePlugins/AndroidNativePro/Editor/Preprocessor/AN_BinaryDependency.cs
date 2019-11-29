@@ -16,7 +16,7 @@ namespace SA.Android
             switch (dependency) 
             {
                 case AN_BinaryDependency.AndroidX:
-                    return "androidx-1.0.0-alpha3";
+                    return "androidx.appcompat-1.1.0";
                 case AN_BinaryDependency.PlayServicesAuth:
                     return "play-services-auth-17.0.0";
                 case AN_BinaryDependency.PlayServicesGames:
@@ -34,7 +34,7 @@ namespace SA.Android
             switch (dependency) 
             {
                 case AN_BinaryDependency.AndroidX:
-                    return "me.panpf:androidx:1.0.0-alpha3";
+                    return "androidx.appcompat:appcompat:1.1.0";
                 case AN_BinaryDependency.PlayServicesAuth:
                     return "com.google.android.gms:play-services-auth:17.0.0";
                 case AN_BinaryDependency.PlayServicesGames:

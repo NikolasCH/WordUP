@@ -21,17 +21,15 @@ namespace SA.iOS.StoreKit
     /// The contents of the queue are persistent between launches of your app.
     /// </summary>
     public static class ISN_SKPaymentQueue 
-    {	
-		//Actions
+    {
         private static event Action<ISN_SKInitResult> m_onStoreKitInitComplete = delegate{};
-        private static List<ISN_iSKPaymentTransactionObserver> m_observers = new List<ISN_iSKPaymentTransactionObserver>();
-
-        private static bool m_isInitializationInProgress = false;
-        private static ISN_SKInitResult m_successInitResultCache = null;
-
-        private static Dictionary<string, ISN_SKProduct> m_products = new Dictionary<string, ISN_SKProduct>();
-
-
+       
+        private static bool m_isInitializationInProgress;
+        private static ISN_SKInitResult m_successInitResultCache;
+        
+        private static readonly Dictionary<string, ISN_SKProduct> m_Products = new Dictionary<string, ISN_SKProduct>();
+        private static readonly List<ISN_iSKPaymentTransactionObserver> m_Observers = new List<ISN_iSKPaymentTransactionObserver>();
+        
         //--------------------------------------
         // Initialization
         //--------------------------------------
@@ -45,35 +43,39 @@ namespace SA.iOS.StoreKit
         //  Public Methods
         //--------------------------------------
 
-
+        public static void Init(Action<ISN_SKInitResult> callback)
+        {
+            Init(ISN_Settings.Instance.InAppProducts, callback);
+        }
+        
         /// <summary>
         /// Initializes the Store Kit with the set of previously defined product
         /// Products can be defined under the editor plugin settings: Stan's Assets->IOS Native->Edit Settings
         /// Or you can add product's via code using <see cref="RegisterProduct"/>
         /// </summary>
-        /// <param name="callback">Callback with the initialization result</param>
-        public static void Init(Action<ISN_SKInitResult> callback) 
+        /// <param name="products">List of the products to initialize the service with.</param>
+        /// <param name="callback">Callback with the initialization result.</param>
+        public static void Init( List<ISN_SKProduct> products, Action<ISN_SKInitResult> callback) 
         {
-
-
-            if (m_successInitResultCache != null) {
+            if (m_successInitResultCache != null) 
+            {
                 callback.Invoke(m_successInitResultCache);
                 return;
             }
 
             m_onStoreKitInitComplete += callback;
             if (m_isInitializationInProgress) { return; }
-
-
+            
             m_isInitializationInProgress = true;
 
             var request = new ISN_SKLib.SA_PluginSettingsWindowStylesitRequest();
-            foreach (var product in ISN_Settings.Instance.InAppProducts) {
+            foreach (var product in products) 
+            {
                 request.ProductIdentifiers.Add(product.ProductIdentifier);
             }
-
-
-            ISN_SKLib.API.LoadStore(request, result => {
+            
+            ISN_SKLib.API.LoadStore(request, result => 
+            {
                 m_isInitializationInProgress = false;
                 if(result.IsSucceeded) {
                     CacheAppStoreProducts(result);
@@ -81,10 +83,8 @@ namespace SA.iOS.StoreKit
                 }
                 m_onStoreKitInitComplete.Invoke(result);
                 m_onStoreKitInitComplete = delegate {};
-
             });
 		}
-
 
         /// <summary>
         /// Adds an observer to the payment queue.
@@ -107,9 +107,10 @@ namespace SA.iOS.StoreKit
         /// <param name="observer">The observer to add to the queue.</param>
         public static void AddTransactionObserver(ISN_iSKPaymentTransactionObserver observer) 
         {
-            m_observers.Add(observer);
-            if(m_observers.Count == 1) {
-                //we have atleast one observer atm, so let's enable observation on a native side
+            m_Observers.Add(observer);
+            if(m_Observers.Count == 1) 
+            {
+                //we have at least one observer atm, so let's enable observation on a native side
                 ISN_SKLib.API.SetTransactionObserverState(true);
             }
         }
@@ -122,16 +123,16 @@ namespace SA.iOS.StoreKit
         /// because there is no observer to respond to updated transactions.
         /// </summary>
         /// <param name="observer">The observer to remove.</param>
-        public static void RemoveTransactionObserver(ISN_iSKPaymentTransactionObserver observer) {
-            m_observers.Remove(observer);
-            if (m_observers.Count == 0) {
+        public static void RemoveTransactionObserver(ISN_iSKPaymentTransactionObserver observer) 
+        {
+            m_Observers.Remove(observer);
+            if (m_Observers.Count == 0) 
+            {
                 //we have no observer's atm, have to disable observation on a native side
                 ISN_SKLib.API.SetTransactionObserverState(false);
             }
         }
-            
 
-			
         /// <summary>
         /// Adds a payment request to the queue.
         /// 
@@ -145,12 +146,13 @@ namespace SA.iOS.StoreKit
         /// to all transaction observers.
         /// </summary>
         /// <param name="productId">Product identifier.</param>
-        public static void AddPayment(string productId) {    
-            Init((result) => {
+        public static void AddPayment(string productId) 
+        {    
+            Init(result => 
+            {
                 ISN_SKLib.API.AddPayment(productId);
             });
-
-		}
+        }
 
         /// <summary>
         /// Completes a pending transaction.
@@ -164,13 +166,14 @@ namespace SA.iOS.StoreKit
         /// Calling <see cref="FinishTransaction"/> on a transaction that is in the Purchasing state throws an exception.
         /// </summary>
         /// <param name="transaction">transaction to finish</param>
-        public static void FinishTransaction(ISN_iSKPaymentTransaction transaction) {
-            Init((result) => {
+        public static void FinishTransaction(ISN_iSKPaymentTransaction transaction) 
+        {
+            Init(result => 
+            {
                 ISN_SKLib.API.FinishTransaction(transaction);
             });
 		}
-
-
+        
         /// <summary>
         /// Asks the payment queue to restore previously completed purchases.
         /// 
@@ -179,102 +182,94 @@ namespace SA.iOS.StoreKit
         /// For example, your application would use this to allow a user to unlock previously purchased content 
         /// onto a new device.
         /// </summary>
-        public static void RestoreCompletedTransactions() {
-            Init((result) => {
+        public static void RestoreCompletedTransactions() 
+        {
+            Init(result => 
+            {
                 ISN_SKLib.API.RestoreCompletedTransactions();
             });
         }
-			
-		
+
         /// <summary>
         /// Gets the product by identifier.
         /// </summary>
         /// <param name="productIdentifier">Product identifier.</param>
-        public static ISN_SKProduct GetProductById(string productIdentifier) {
-            return m_products[productIdentifier];
+        public static ISN_SKProduct GetProductById(string productIdentifier) 
+        {
+            return m_Products[productIdentifier];
 		}
-
-
+        
         /// <summary>
         /// Simplified product registration by the product identifier.
         /// You can also define products using editor plugin settings: Stan's Assets->IOS Native->Edit Settings
         /// </summary>
         /// <param name="productId">Product identifier.</param>
-        public static void RegisterProductId(string productId) {
-
-            ISN_SKProduct tpl = new ISN_SKProduct();
+        public static void RegisterProductId(string productId) 
+        {
+            var tpl = new ISN_SKProduct();
             tpl.ProductIdentifier = productId;
             RegisterProduct(tpl);
         }
-
-
+        
         /// <summary>
         /// Registers the product.
         /// You can also define products using editor plugin settings: Stan's Assets->IOS Native->Edit Settings
         /// </summary>
         /// <param name="product">Product.</param>
-        public static void RegisterProduct(ISN_SKProduct product) {
-
-            bool IsProductAlreadyInList = false;
-            int replaceIndex = 0;
-            foreach (ISN_SKProduct p in ISN_Settings.Instance.InAppProducts) {
-                if (p.ProductIdentifier.Equals(product.ProductIdentifier)) {
+        public static void RegisterProduct(ISN_SKProduct product) 
+        {
+            var IsProductAlreadyInList = false;
+            var replaceIndex = 0;
+            foreach (ISN_SKProduct p in ISN_Settings.Instance.InAppProducts) 
+            {
+                if (p.ProductIdentifier.Equals(product.ProductIdentifier)) 
+                {
                     IsProductAlreadyInList = true;
                     replaceIndex = ISN_Settings.Instance.InAppProducts.IndexOf(p);
                     break;
                 }
             }
 
-            if (IsProductAlreadyInList) {
+            if (IsProductAlreadyInList) 
                 ISN_Settings.Instance.InAppProducts[replaceIndex] = product;
-            } else {
+            else 
                 ISN_Settings.Instance.InAppProducts.Add(product);
-            }
         }
-
-
+        
 		//--------------------------------------
 		//  Get / Set
 		//--------------------------------------
-
-
-		
+        
         /// <summary>
         /// Gets a value indicating whether this <see cref="ISN_SKPaymentQueue"/> is ready.
         /// The ISN_SKPaymentQueue is ready once Init is completed successfully
         /// </summary>
         /// <value><c>true</c> if is ready; otherwise, <c>false</c>.</value>
-        public static bool IsReady {
-			get {
-                return m_successInitResultCache != null;
-			}
+        public static bool IsReady 
+        {
+			get { return m_successInitResultCache != null; }
 		}
-
-
+        
         /// <summary>
         /// For an application purchased from the App Store, use this property a to get the receipt. 
         /// This property makes no guarantee about whether there is a file at the URL—only 
         /// that if a receipt is present, that is its location.
         /// </summary>
         /// <returns>The app store receipt.</returns>
-        public static ISN_SKAppStoreReceipt AppStoreReceipt {
-            get {
-                return ISN_SKLib.API.RetrieveAppStoreReceipt();
-            }
+        public static ISN_SKAppStoreReceipt AppStoreReceipt 
+        {
+            get { return ISN_SKLib.API.RetrieveAppStoreReceipt(); }
         }
-
-
+        
         /// <summary>
         /// A list of products, one product for each valid product identifier provided in the original init request.
         /// only valid to use when <see cref="IsReady"/> is <c>true</c>
         /// </summary>
-        public static List<ISN_SKProduct> Products {
-            get {
-                return new List<ISN_SKProduct>(m_products.Values);
-            }
+        public static List<ISN_SKProduct> Products 
+        {
+            get { return new List<ISN_SKProduct>(m_Products.Values); }
         }
-
-
+        
         /// <summary>
         /// Indicates whether the user is allowed to make payments.
         /// 
@@ -286,79 +281,79 @@ namespace SA.iOS.StoreKit
         /// when the user is not allowed to authorize payments.
         /// </summary>
         /// <value><c>true</c> if can make payments; otherwise, <c>false</c>.</value>
-        public static bool CanMakePayments {
-			get {
-                return ISN_SKLib.API.CanMakePayments();
-			}
+        public static bool CanMakePayments 
+        {
+			get { return ISN_SKLib.API.CanMakePayments(); }
 		}
-
-
-
+        
 		//--------------------------------------
 		//  Private Methods
 		//--------------------------------------
-
-
-        private static void SubscribeToNativeEvents() {
-            ISN_SKLib.API.TransactionUpdated.AddListener((result) => {
-                foreach(var observer in m_observers) {
+        
+        private static void SubscribeToNativeEvents() 
+        {
+            ISN_SKLib.API.TransactionUpdated.AddListener(result => 
+            {
+                foreach(var observer in m_Observers) 
+                {
                     observer.OnTransactionUpdated(result);
                 }
             });
 
-
-            ISN_SKLib.API.TransactionRemoved.AddListener((result) => {
-                foreach (var observer in m_observers) {
+            ISN_SKLib.API.TransactionRemoved.AddListener(result => 
+            {
+                foreach (var observer in m_Observers) {
                     observer.OnTransactionRemoved(result);
                 }
             });
 
-            ISN_SKLib.API.RestoreTransactionsComplete.AddListener((result) => {
-                foreach (var observer in m_observers) {
+            ISN_SKLib.API.RestoreTransactionsComplete.AddListener(result => 
+            {
+                foreach (var observer in m_Observers) 
+                {
                     observer.OnRestoreTransactionsComplete(result);
                 }
             });
 
-            ISN_SKLib.API.ShouldAddStorePayment.AddListener((result) => {
-                bool startTransaction = false;
-                foreach (var observer in m_observers) {
+            ISN_SKLib.API.ShouldAddStorePayment.AddListener(result => 
+            {
+                var startTransaction = false;
+                foreach (var observer in m_Observers) {
                     startTransaction = observer.OnShouldAddStorePayment(result);
                 }
 
-                if(startTransaction) {
+                if(startTransaction) 
                     AddPayment(result.ProductIdentifier);
-                }
             });
-			
-		}
+        }
 
-
-        private static void CacheAppStoreProducts(ISN_SKInitResult result) {
-
-            m_products.Clear();
-            foreach(ISN_SKProduct product in result.Products) {
-                ISN_SKProduct settingsProduct = GetProductFromSettings(product.ProductIdentifier);
-                if(settingsProduct != null) {
+        private static void CacheAppStoreProducts(ISN_SKInitResult result) 
+        {
+            m_Products.Clear();
+            foreach(ISN_SKProduct product in result.Products) 
+            {
+                var settingsProduct = GetProductFromSettings(product.ProductIdentifier);
+                if(settingsProduct != null) 
+                {
                     product.EditorData = settingsProduct.EditorData;
                 }
 
-                m_products.Add(product.ProductIdentifier, product);
+                m_Products.Add(product.ProductIdentifier, product);
             }
-
         }
 
-
-        private static ISN_SKProduct GetProductFromSettings(string productIdentifier) {
-            foreach(ISN_SKProduct product in ISN_Settings.Instance.InAppProducts) {
-                if(product.ProductIdentifier.Equals(productIdentifier)) {
+        private static ISN_SKProduct GetProductFromSettings(string productIdentifier) 
+        {
+            foreach(ISN_SKProduct product in ISN_Settings.Instance.InAppProducts) 
+            {
+                if(product.ProductIdentifier.Equals(productIdentifier)) 
+                {
                     return product;
                 }
             }
             return null;
         }
-
-
-	}
+    }
 }
 
 

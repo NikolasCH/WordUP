@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using UnityEngine;
+using SA.Android;
+using SA.Android.Utilities;
 using SA.Foundation.Templates;
 using SA.Android.Vending.BillingClient;
 using UnityEngine.Assertions;
@@ -11,13 +12,17 @@ namespace SA.CrossPlatform.InApp
     internal class UM_AndroidInAppClient : UM_AbstractInAppClient, 
         UM_iInAppClient, 
         AN_iBillingClientStateListener,
-        AN_iPurchasesUpdatedListener,
-        AN_iConsumeResponseListener
+        AN_iPurchasesUpdatedListener
     {
         private AN_BillingClient m_BillingClient;
         private Action<SA_iResult> m_ConnectToServiceCallback;
-        private readonly List<AN_Purchase> m_Purchases = new List<AN_Purchase>();
+        private Dictionary<string, AN_Purchase> m_Purchases = new Dictionary<string, AN_Purchase>();
         private readonly List<AN_SkuDetails> m_Products = new List<AN_SkuDetails>();
+        private UM_AndroidProductConsumer m_ProductConsumer;
+
+        private IEnumerable<UM_ProductTemplate> m_InitialProducts;
+
+        private string m_CurrentBillingFlowSku = string.Empty;
 
         internal AN_BillingClient BillingClient
         {
@@ -30,6 +35,12 @@ namespace SA.CrossPlatform.InApp
 
         protected override void ConnectToService(Action<SA_iResult> callback)
         {
+            ConnectToService(null, callback);
+        }
+
+        protected override void ConnectToService(IEnumerable<UM_ProductTemplate> products, Action<SA_iResult> callback)
+        {
+            m_InitialProducts = products;
             m_ConnectToServiceCallback = callback;
             using (var builder = AN_BillingClient.NewBuilder())
             {
@@ -40,6 +51,8 @@ namespace SA.CrossPlatform.InApp
 
                 m_BillingClient = builder.Build();
                 m_BillingClient.StartConnection(this);
+                
+                m_ProductConsumer = new UM_AndroidProductConsumer(m_BillingClient);
             }
         }
         
@@ -51,39 +64,33 @@ namespace SA.CrossPlatform.InApp
         {
             if (billingResult.IsSucceeded)
             {
-                //inapp
-                var purchasesResult = m_BillingClient.QueryPurchases(AN_BillingClient.SkuType.inapp);
-                if (purchasesResult.IsSucceeded)
-                {
-                    m_Purchases.AddRange(purchasesResult.Purchases);
-                }
-                else
-                {
-                    m_ConnectToServiceCallback.Invoke(purchasesResult);
-                }
+                UM_AndroidSkuDetailsLoader skuDetailsLoader;
+                if(m_InitialProducts == null)
+                    skuDetailsLoader = new UM_AndroidSkuDetailsLoader(AN_Settings.Instance.InAppProducts);
+                else 
+                    skuDetailsLoader = new UM_AndroidSkuDetailsLoader(ConvertToAndroidTemplates(m_InitialProducts));
                 
-                //subs
-                purchasesResult = m_BillingClient.QueryPurchases(AN_BillingClient.SkuType.subs);
-                if (purchasesResult.IsSucceeded)
-                {
-                    m_Purchases.AddRange(purchasesResult.Purchases);
-                }
-                else
-                {
-                    m_ConnectToServiceCallback.Invoke(purchasesResult);
-                }
-                
-                
-                var skuDetailsLoader = new UM_AndroidSkuDetailsLoader();
                 skuDetailsLoader.LoadSkuDetails(m_BillingClient, AN_BillingClient.SkuType.inapp, inapps =>
                 {
                     m_Products.AddRange(inapps);
                     skuDetailsLoader.LoadSkuDetails(m_BillingClient, AN_BillingClient.SkuType.subs, subs =>
                     {
                         m_Products.AddRange(subs);
-                        m_ConnectToServiceCallback.Invoke(billingResult);
-
-                        VerifyPurchases();
+                        if (m_Products.Count == 0)
+                        {
+                            var errorMessage =
+                                "UM_AndroidInAppClient: Connections successful but not products found. " +
+                                "Cloud be due to application misconfiguration or missing internet connection ";
+                            AN_Logger.Log(errorMessage);
+                            var failedResult = new SA_Result(new SA_Error(1001, errorMessage));
+                            m_ConnectToServiceCallback.Invoke(failedResult);
+                        }
+                        else
+                        {
+                            AN_Logger.Log("UM_AndroidInAppClient: Billing service initialized with " + m_Products.Count + " available products");
+                            m_ConnectToServiceCallback.Invoke(billingResult);
+                        }
+                        
                     });
                 });
             }
@@ -93,27 +100,176 @@ namespace SA.CrossPlatform.InApp
             }
         }
 
-        private void VerifyPurchases()
+        internal static List<AN_SkuDetails> ConvertToAndroidTemplates(IEnumerable<UM_ProductTemplate> productTemplates)
         {
-            foreach (var purchase in m_Purchases)
+            var result = new List<AN_SkuDetails>();
+            foreach (var product in productTemplates)
             {
-                var product = GetProduct(purchase.Sku);
-                if(product == null)
-                    continue;
-
-                if (product.IsConsumable)
+                AN_SkuDetails sku = null;
+                switch (product.Type)
                 {
-                    RestartTransaction(purchase);
+                    case UM_ProductType.Consumable:
+                        sku = new AN_SkuDetails(product.Id, AN_BillingClient.SkuType.inapp);
+                        sku.IsConsumable = true;
+                        break;
+                    case UM_ProductType.NonConsumable:
+                        sku = new AN_SkuDetails(product.Id, AN_BillingClient.SkuType.inapp);
+                        sku.IsConsumable = false;
+                        break;
+                    case UM_ProductType.Subscription:
+                        sku = new AN_SkuDetails(product.Id, AN_BillingClient.SkuType.subs);
+                        break;
+                }
+                result.Add(sku);
+            }
+
+            return result;
+        }
+
+        private void GetPurchaseRecords(Action<List<UM_AndroidPurchaseRecord>> callback)
+        {
+            var availableRecords = new List<string>();
+            var records = new List<UM_AndroidPurchaseRecord>();
+            var localPurchasesCache = new List<AN_Purchase>();
+            
+            var purchases = m_BillingClient.QueryPurchases(AN_BillingClient.SkuType.inapp);
+            if (purchases.Purchases != null)
+                localPurchasesCache.AddRange(purchases.Purchases);
+            
+            purchases = m_BillingClient.QueryPurchases(AN_BillingClient.SkuType.subs);
+            if (purchases.Purchases != null)
+                localPurchasesCache.AddRange(purchases.Purchases);
+            
+            foreach (var purchase in localPurchasesCache)
+            {
+                var record = new UM_AndroidPurchaseRecord(purchase);
+                if (record.IsValid)
+                {
+                    records.Add(record);
+                    availableRecords.Add(record.SkuDetails.Sku);
+                }
+            }
+            
+            var loader = new UM_AndroidSkuPurchaseHistoryLoader(m_BillingClient);
+            loader.Load(purchaseHistoryRecords =>
+            {
+                foreach (var historyRecord in purchaseHistoryRecords)
+                {
+                    if(availableRecords.Contains(historyRecord.Sku))
+                        continue;
+                    
+                    var record = new UM_AndroidPurchaseRecord(historyRecord);
+                    if(record.IsValid) 
+                        records.Add(record);
+                }
+                
+                callback.Invoke(records);
+            });
+        }
+        
+        protected override void ObserveTransactions()
+        {
+            GetPurchaseRecords(records =>
+            {
+                //Processed local records only
+                foreach (var record in records)
+                {
+                    if(!record.IsLocal)
+                        continue;
+                    
+                    //We have the local transaction record, but it wasn't yet completed, let's restore the transaction.
+                    //Do not mix with "restored" transactions via RestoreTransactions method.
+                    
+                   
+                    if (!record.WasProcessedLocally) 
+                    {
+                        AN_Logger.Log("UM_AndroidInAppClient: Found unprocessed local transaction. Transaction restarted for: " + record.SkuDetails.Sku);
+                        UpdateTransaction(new UM_AndroidTransaction(record.Purchase, false));
+                    }
+                    else
+                    {
+                        //Transaction was completed locally, in this case,
+                        //let's make sure it was finished properly on the native part as well.
+                        AN_Logger.Log("UM_AndroidInAppClient: Local transaction for product: " + record.SkuDetails.Sku + "was finished, just make sure it's also completed on a native part");
+                        FinishNativeTransaction(record.Purchase);
+                    }
+                }
+                
+                //This is an additional testing layer, made to prevent lost transaction if local cache was harmed.
+                //All records that we will have there wasn't present in the local cache.
+                foreach (var record in records)
+                {
+                    if(record.IsLocal)
+                        continue;
+                    
+                    AN_Logger.Log("UM_AndroidInAppClient: History record for: " + record.SkuDetails.Sku);
+                    
+                    //This application instance already aware of this purchase 
+                    if(record.WasProcessedLocally)
+                        continue;
+                    
+                    AN_Logger.Log("UM_AndroidInAppClient: History transaction wasn't processed locally");
+
+                    switch (record.SkuDetails.Type)
+                    {
+                        case AN_BillingClient.SkuType.inapp:
+                            if (record.SkuDetails.IsConsumable)
+                            {
+                                AN_Logger.Log("UM_AndroidInAppClient: Found unprocessed consumable purchase history record for + " + record.SkuDetails.Sku + ". Consuming...");
+                                //This is again a bit risky. The only way to check if item wasn't consumed yet
+                                //is to actually consume it.
+                                //The risk is, if we will consume it and then cline app will fail to reward the user
+                                //this purchase will be permanently lost
+                                m_ProductConsumer.Consume(record.Purchase.PurchaseToken, result =>
+                                {
+                                    AN_Logger.Log("UM_AndroidInAppClient: History transaction consume: " + result.IsSucceeded);
+                                    var transaction = new UM_AndroidTransaction(record.Purchase, false);
+                                    if(result.IsSucceeded)
+                                        UpdateTransaction(transaction);
+                                    else
+                                        UM_AndroidInAppTransactions.RegisterCompleteTransaction(transaction.Id);
+                                });
+                            }
+                            else
+                            {
+                                AN_Logger.Log("UM_AndroidInAppClient: Restore history transaction");
+                                Restore(record);
+                            }
+                            break;
+                        case AN_BillingClient.SkuType.subs:
+                            Restore(record);
+                            break;
+                    }
+                }
+            });
+        }
+
+        private void Restore(UM_AndroidPurchaseRecord record)
+        {
+            //This can be dangerous since we can't know if history record contains expired / refunded or invalid purchase
+            //it can only be verified by sending details to the server.
+            //What we are trying to do here, is to run Acknowledge method and see if it fails
+            //If it fails this is probably expired or refunded transaction, otherwise is is valid transaction and we can restore it
+            
+            //Another issue that if we will Acknowledge not previously Acknowledged transaction, we can't go back from this state.
+            
+            AN_Logger.Log("UM_AndroidInAppClient: Trying to restore Acknowledged transaction.");
+            Acknowledge(record.Purchase.PurchaseToken, result =>
+            {
+                var transaction = new UM_AndroidTransaction(record.Purchase, false);
+                if (result.IsSucceeded)
+                {
+                    UpdateTransaction(transaction);
                 }
                 else
                 {
-                    if(!purchase.IsAcknowledged)
-                        RestartTransaction(purchase);
+                    //To make sure we will not run it again in case of failure
+                    UM_AndroidInAppTransactions.RegisterCompleteTransaction(transaction.Id);
                 }
-            }
+            });
         }
 
-        private AN_SkuDetails GetProduct(string sku)
+        internal AN_SkuDetails GetProduct(string sku)
         {
             foreach (var product in m_Products)
                 if (product.Sku.Equals(sku))
@@ -141,24 +297,14 @@ namespace SA.CrossPlatform.InApp
 
                 if (products.ContainsKey(p.Id))
                 {
-                    Debug.LogError("Skipping duplicated id for product " + p.Id + " check your settings!");
+                    AN_Logger.LogError("UM_AndroidInAppClient: Skipping duplicated id for product " + p.Id + " check your settings!");
                     continue;
                 }
                 products.Add(p.Id, p);
             }
             return products;
         }
-
-        protected override void ObserveTransactions() {
-            foreach (var purchase in m_Purchases) {
-                var transaction = new UM_AndroidTransaction(purchase, isRestored: false);
-
-                if (!UM_AndroidInAppTransactions.IsTransactionCompleted(transaction.Id)) {
-                    UpdateTransaction(transaction);
-                }
-            }
-        }
-
+        
         //--------------------------------------
         //  UM_iInAppClient
         //--------------------------------------
@@ -167,7 +313,8 @@ namespace SA.CrossPlatform.InApp
         {
             var skuDetails = GetSkuDetails(productId);
             Assert.IsNotNull(skuDetails);
-            
+
+            m_CurrentBillingFlowSku = productId;
             var paramsBuilder = AN_BillingFlowParams.NewBuilder();
             paramsBuilder.SetSkuDetails(skuDetails);
             m_BillingClient.LaunchBillingFlow(paramsBuilder.Build());
@@ -181,100 +328,159 @@ namespace SA.CrossPlatform.InApp
         {
             foreach (var purchase in purchases)
             {
-                if (billingResult.IsSucceeded)
-                {
-                    m_Purchases.Add(purchase);
-                }
-                
-                var transaction = new UM_AndroidTransaction(billingResult, purchase);
-                UpdateTransaction(transaction);
+                SendTransactionUpdate(billingResult, purchase);
             }
 
             if (purchases.Count == 0)
             {
                 if (billingResult.IsFailed)
                 {
-                    var transaction = new UM_AndroidTransaction(billingResult, null);
-                    UpdateTransaction(transaction);
+                    TryResolve(billingResult, () =>
+                    {
+                        SendTransactionUpdate(billingResult, null);
+                    });
                 }
                 else
                 {
-                    throw new InvalidEnumArgumentException("billingResult is Succeeded, but no products provided");
+                    throw new InvalidEnumArgumentException("UM_AndroidInAppClient:  billingResult is Succeeded, but no products provided.");
                 }
             }
         }
 
-        public void FinishTransaction(UM_iTransaction transaction) {
+        private bool m_FixAttemptInProgress;
 
-            if(transaction.State == UM_TransactionState.Failed) {
+        private void TryResolve(SA_iResult billingResult, Action onResolveFailed)
+        {
+            AN_Logger.Log("UM_AndroidInAppClient: Purchase failed, let's see if we can resolve");
+
+            AN_Logger.Log("UM_AndroidInAppClient: Resolve condition: ");
+            AN_Logger.Log("UM_AndroidInAppClient: m_FixAttemptInProgress: " + !m_FixAttemptInProgress);
+            AN_Logger.Log("UM_AndroidInAppClient: billingResult.Error.Code == (int) AN_BillingClient.BillingResponseCode.ItemAlreadyOwned: " + (billingResult.Error.Code == (int) AN_BillingClient.BillingResponseCode.ItemAlreadyOwned));
+            AN_Logger.Log("UM_AndroidInAppClient: GetProduct(m_CurrentBillingFlowSku).Type == AN_BillingClient.SkuType.inapp: " + (GetProduct(m_CurrentBillingFlowSku).Type == AN_BillingClient.SkuType.inapp));
+            AN_Logger.Log("UM_AndroidInAppClient: GetProduct(m_CurrentBillingFlowSku).IsConsumable: " + GetProduct(m_CurrentBillingFlowSku).IsConsumable);
+            
+            if (!m_FixAttemptInProgress
+                && billingResult.Error.Code == (int) AN_BillingClient.BillingResponseCode.ItemAlreadyOwned
+                && GetProduct(m_CurrentBillingFlowSku).Type == AN_BillingClient.SkuType.inapp
+                && GetProduct(m_CurrentBillingFlowSku).IsConsumable)
+            {
+                AN_Logger.LogWarning("UM_AndroidInAppClient: attempting to fix ItemAlreadyOwned error for: " + m_CurrentBillingFlowSku);
+                GetPurchaseRecords(records =>
+                {
+                    UM_AndroidPurchaseRecord purchaseRecord = null;
+                    foreach (var record in records)
+                    {
+                        if (record.SkuDetails.Sku.Equals(m_CurrentBillingFlowSku))
+                        {
+                            purchaseRecord = record;
+                            break;
+                        }
+                    }
+                        
+                    //We cna nothing to do here. Google tells that item is owned, but no purchase info can be found
+                    if (purchaseRecord == null)
+                    {
+                        AN_Logger.LogWarning("UM_AndroidInAppClient: Failed to fix ItemAlreadyOwned error for: " 
+                                             + m_CurrentBillingFlowSku + " no purchase info found.");
+                            
+                        onResolveFailed.Invoke();
+                        return;
+                    }
+                    
+                    AN_Logger.Log("UM_AndroidInAppClient: Unresolved record found purchaseRecord.IsLocal: " + purchaseRecord.IsLocal);
+                    m_FixAttemptInProgress = true;
+                    if (purchaseRecord.WasProcessedLocally)
+                    {
+                        AN_Logger.LogWarning("UM_AndroidInAppClient: The client app tried to finish this transaction earlier. " 
+                                             + " Let's try to finish the transaction.");
+                        m_ProductConsumer.Consume(purchaseRecord.Purchase, result =>
+                        {
+                            if (result.IsSucceeded)
+                                AddPayment(m_CurrentBillingFlowSku);
+                            else
+                                onResolveFailed.Invoke();
+                        });
+                    }
+                    else
+                    {
+                        AN_Logger.LogWarning("UM_AndroidInAppClient: The client app missed this transaction. " 
+                                             + " Let's try to re-run the transaction.");
+                        UpdateTransaction(new UM_AndroidTransaction(purchaseRecord.Purchase, false));
+                    }
+                });
+            }
+            else
+            {
+                onResolveFailed.Invoke();
+            }
+        }
+
+        private void SendTransactionUpdate(SA_iResult billingResult, AN_Purchase purchase)
+        {
+            m_FixAttemptInProgress = false;
+            var transaction = new UM_AndroidTransaction(billingResult, purchase);
+            UpdateTransaction(transaction);
+        }
+
+        public void FinishTransaction(UM_iTransaction transaction) 
+        {
+            if(transaction.State == UM_TransactionState.Failed) 
+            {
                 //noting to finish since it's failed
                 //it will not have product or transaction id
                 return;
             }
 
-            var skuDetails = GetSkuDetails(transaction.ProductId);
+            if (!(transaction is UM_AndroidTransaction))
+                throw new ArgumentException("UM_AndroidInAppClient: Wrong transaction class", "transaction");
+            
+            var purchase = ((UM_AndroidTransaction) transaction).Purchase;
+
+            FinishNativeTransaction(purchase);
+            UM_AndroidInAppTransactions.RegisterCompleteTransaction(transaction.Id);
+        }
+
+        private void FinishNativeTransaction(AN_Purchase purchase)
+        {
+            var skuDetails = GetSkuDetails(purchase.Sku);
             if (skuDetails != null)
             {
-                var purchase = (transaction as UM_AndroidTransaction).Purchase;
                 Assert.IsNotNull(purchase);
                 switch (skuDetails.Type)
                 {
                     case AN_BillingClient.SkuType.inapp:
                         if (skuDetails.IsConsumable)
-                            Consume(purchase);
-                        else
+                            m_ProductConsumer.Consume(purchase, result => { });
+                        else if (!purchase.IsAcknowledged)
                             Acknowledge(purchase);
                         break;
                     case AN_BillingClient.SkuType.subs:
-                        Acknowledge(purchase);
+                        if(!purchase.IsAcknowledged)
+                            Acknowledge(purchase);
                         break;
                 }
-            } else {
-                Debug.LogError("Transaction is finished, but no product found for id: " + transaction.ProductId);
+            } 
+            else 
+            {
+                AN_Logger.LogError("UM_AndroidInAppClient: Transaction is finished, but no product found for id: " + purchase.Sku);
             }
-            
-            UM_AndroidInAppTransactions.RegisterCompleteTransaction(transaction.Id);
         }
-
-        private void Consume(AN_Purchase purchase)
-        {
-            var paramsBuilder = AN_ConsumeParams.NewBuilder();
-            paramsBuilder.SetPurchaseToken(purchase.PurchaseToken);
-            m_BillingClient.ConsumeAsync(paramsBuilder.Build(), this);
-        }
-
+        
         private void Acknowledge(AN_Purchase purchase)
         {
-            var paramsBuilder = AN_AcknowledgePurchaseParams.NewBuilder();
-            paramsBuilder.SetPurchaseToken(purchase.PurchaseToken);
-            m_BillingClient.AcknowledgePurchase(paramsBuilder.Build(), result => { });
+            Acknowledge(purchase.PurchaseToken, (result) => { });
         }
-        
-        //--------------------------------------
-        //  AN_iConsumeResponseListener
-        //--------------------------------------
-        
-        public void OnConsumeResponse(SA_iResult billingResult, string purchaseToken)
-        {
-            Assert.IsTrue(billingResult.IsSucceeded);
-            AN_Purchase consumePurchase = null;
-            foreach (var purchase in m_Purchases)
-            {
-                if (purchase.PurchaseToken.Equals(purchaseToken))
-                    consumePurchase = purchase;
-            }
 
-            if (consumePurchase != null)
-                m_Purchases.Remove(consumePurchase);
+        private void Acknowledge(string purchaseToken, Action<SA_iResult> callback)
+        {
+            var paramsBuilder = AN_AcknowledgePurchaseParams.NewBuilder();
+            paramsBuilder.SetPurchaseToken(purchaseToken);
+            m_BillingClient.AcknowledgePurchase(paramsBuilder.Build(), callback);
         }
 
         public void RestoreCompletedTransactions() 
         {
-           foreach(var purchase in m_Purchases) 
-           {
-                var transaction = new UM_AndroidTransaction(purchase, isRestored: true);
-                UpdateTransaction(transaction);
-           }
+            //Isn't relevant for an Android platform.
         }
 
         private AN_SkuDetails GetSkuDetails(string sku)

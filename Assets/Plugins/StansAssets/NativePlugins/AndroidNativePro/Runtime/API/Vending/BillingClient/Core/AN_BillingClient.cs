@@ -194,10 +194,12 @@ namespace SA.Android.Vending.BillingClient
 
             public AN_BillingClient Build()
             {
+                if(!AN_Settings.Instance.Vending)
+                    throw new InvalidOperationException("AN_BillingClient can only be build when Vending service is enabled. " +
+                                                        "Please enable it using the plugin editor settings.");
+                
                 if (Application.isEditor)
-                {
                     return new AN_BillingClient();
-                }
                 
                 var json = AN_Java.Bridge.CallStatic<string>(k_NativeBillingClientBuilder, 
                     "Build",
@@ -420,16 +422,16 @@ namespace SA.Android.Vending.BillingClient
                 {
                     if (result.IsSucceeded)
                     {
-                        foreach (var skuDetails in result.SkuDetailsList)
+                        foreach (var mativeDetails in result.SkuDetailsList)
                         {
-                            var savedProduct = GetSkuDetails(skuDetails.Sku);
-                            if (savedProduct != null)
+                            var localSkuDetails = GetSkuDetails(mativeDetails.Sku);
+                            if (localSkuDetails != null)
                             {
-                                JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(skuDetails), savedProduct);
+                                OverrideLocalSkuWithNativeData(localSkuDetails, mativeDetails);
                             }
                             else
                             {
-                                AN_Settings.Instance.InAppProducts.Add(skuDetails);
+                                AN_Settings.Instance.InAppProducts.Add(mativeDetails);
                             }
                         }
                     }
@@ -438,6 +440,19 @@ namespace SA.Android.Vending.BillingClient
                 },
                 HashCode,
                 @params);
+        }
+
+        internal static void OverrideLocalSkuWithNativeData(AN_SkuDetails local, AN_SkuDetails native)
+        {
+            //Save custom data
+            var icon = local.Icon;
+            var isConsumable = local.IsConsumable;
+            
+            JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(native), local);
+
+            //Restore custom data 
+            local.Icon = icon;
+            local.IsConsumable = isConsumable;
         }
         
         /// <summary>
@@ -474,8 +489,8 @@ namespace SA.Android.Vending.BillingClient
         ///     <cref>https://developers.google.com/android-publisher/api-ref/purchases/subscriptions/get</cref>
         /// </see>
         /// </summary>
-        /// <param name="skuType"></param>
-        /// <returns></returns>
+        /// <param name="skuType">The type of SKU, either "inapp" or "subs" as in <see cref="SkuType"/> </param>
+        /// <returns>The <see cref="AN_Purchase.PurchasesResult"/> containing the list of purchases and the response code.</returns>
         public AN_Purchase.PurchasesResult QueryPurchases(SkuType skuType)
         {
             var resultJSON =  AN_Java.Bridge.CallStatic<string>(
@@ -486,6 +501,35 @@ namespace SA.Android.Vending.BillingClient
 
             var result = JsonUtility.FromJson<AN_Purchase.PurchasesResult>(resultJSON);
             return result;
+        }
+
+        /// <summary>
+        /// Returns the most recent purchase made by the user for each SKU, even if that purchase is expired, canceled, or consumed.
+        /// </summary>
+        /// <param name="skuType">The type of SKU, either "inapp" or "subs" as in <see cref="SkuType"/>.</param>
+        /// <param name="listener">Implement it to get the result of your query operation returned asynchronously through the callback.</param>
+        public void QueryPurchaseHistoryAsync(SkuType skuType, AN_iPurchaseHistoryResponseListener listener)
+        {
+            /*
+            var javaRequestBuilder = new AN_JavaRequestBuilder(k_NativeBillingClient, "QueryPurchaseHistoryAsync");
+            javaRequestBuilder.AddArgument(HashCode);
+            javaRequestBuilder.AddArgument(skuType);
+            javaRequestBuilder.AddCallback<AN_OnPurchaseHistoryResponseResult>(result =>
+            {
+                listener.OnConsumeResponse(result, result.PurchaseHistoryRecordList);
+            });
+           
+            javaRequestBuilder.Invoke();*/
+            
+            AN_Java.Bridge.CallStaticWithCallback<AN_OnPurchaseHistoryResponseResult>(
+                k_NativeBillingClient,
+                "QueryPurchaseHistoryAsync",
+                result =>
+                {
+                    listener.OnConsumeResponse(result, result.PurchaseHistoryRecordList);
+                },
+                HashCode,
+                skuType.ToString());
         }
 
         /// <summary>

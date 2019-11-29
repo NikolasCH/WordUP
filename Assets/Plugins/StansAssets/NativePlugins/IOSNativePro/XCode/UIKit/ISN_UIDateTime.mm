@@ -249,7 +249,6 @@ UIDatePicker *datePicker;
 
 - (void) DP_show:(ISN_UIDateTimePicker* )request {
     UIViewController *vc =  UnityGetGLViewController();
-    
     [self disableTouchesOnView:vc.view];
     
     CGRect toolbarTargetFrame = CGRectMake(0, vc.view.bounds.size.height-216-44, [self GetW], 44);
@@ -267,11 +266,13 @@ UIDatePicker *datePicker;
     
     
     datePicker = [[UIDatePicker alloc] initWithFrame:CGRectMake(0, vc.view.bounds.size.height+44, [self GetW], 216)];
+    if (@available(iOS 13.0, *)) {
+        if([vc traitCollection].userInterfaceStyle == UIUserInterfaceStyleDark) {
+             datePicker.backgroundColor = [UIColor grayColor];
+        }
+    }
+   
     datePicker.tag = 10;
-    
-    
-    
-    
     [datePicker addTarget:self action:@selector(DP_changeDate:) forControlEvents:UIControlEventValueChanged];
     switch (request.m_datePickerMode) {
         case 1:

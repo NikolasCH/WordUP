@@ -1,4 +1,5 @@
 using System;
+using SA.Android.Utilities;
 using SA.Foundation.Templates;
 using SA.Android.Vending.BillingClient;
 
@@ -25,10 +26,23 @@ namespace SA.CrossPlatform.InApp
             SetPurchase(purchase, isRestored);
         }
 
-        private void SetPurchase(AN_Purchase purchase, bool isRestored) {
-            m_id = purchase.OrderId;
+        private void SetPurchase(AN_Purchase purchase, bool isRestored) 
+        {
+            m_id = purchase.PurchaseToken;
             m_productId = purchase.Sku;
-            m_unixTimestamp = purchase.PurchaseTime;
+            
+            //convert from ms to sec
+            try
+            {
+                m_unixTimestamp =  (long) TimeSpan.FromMilliseconds(purchase.PurchaseTime).TotalSeconds;
+            }
+            catch (Exception exception)
+            { 
+                m_unixTimestamp = purchase.PurchaseTime;
+                AN_Logger.LogWarning("Failed to convert ms : " + purchase.PurchaseTime + " to seconds");
+                AN_Logger.LogWarning("Exception Message: " + exception.Message);
+            }
+            
             m_state = isRestored ? UM_TransactionState.Restored : UM_TransactionState.Purchased;
             SetNativeTransaction(purchase);
         }

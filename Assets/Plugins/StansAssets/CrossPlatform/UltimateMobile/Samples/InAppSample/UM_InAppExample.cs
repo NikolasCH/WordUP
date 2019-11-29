@@ -22,7 +22,6 @@ public class UM_InAppExample : MonoBehaviour
     [Header("Android Only API")] 
     [SerializeField] private Button m_CheckAccess = null;
     [SerializeField] private Button m_SubscriptionReplace = null;
-
     
     private void Start()
     {

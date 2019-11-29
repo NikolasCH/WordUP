@@ -25,10 +25,12 @@ namespace SA.Android.Vending.BillingClient
         [SerializeField] private string m_SubscriptionPeriod = string.Empty;
         [SerializeField] private bool m_IsRewarded = false;
         [SerializeField] private string m_OriginalJson = string.Empty;
-        [SerializeField] private bool m_IsConsumable = false;
         [SerializeField] private int m_SkuDetailsHashId = 0;
 
-        private Texture2D m_Icon = null;
+         //Custom data (does not exists in the native part)
+        [SerializeField] private Texture2D m_SettingsIcon = null;
+        [SerializeField] private bool m_IsConsumable = false;
+       
         
         internal AN_SkuDetails(string sku, AN_BillingClient.SkuType productType)
         {
@@ -198,8 +200,8 @@ namespace SA.Android.Vending.BillingClient
 
         public Texture2D Icon
         {
-            get { return m_Icon; }
-            set { m_Icon = value; }
+            get { return m_SettingsIcon; }
+            set { m_SettingsIcon = value; }
         }
     }
 }

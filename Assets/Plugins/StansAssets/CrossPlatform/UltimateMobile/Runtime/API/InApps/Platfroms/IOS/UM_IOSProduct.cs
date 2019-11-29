@@ -19,9 +19,24 @@ namespace SA.CrossPlatform.InApp
             {
                 m_priceCurrencyCode = "USD";
             }
-           
+            
             m_title = productTemplate.LocalizedTitle;
             m_description = productTemplate.LocalizedDescription;
+            switch (productTemplate.Type)
+            {
+                case ISN_SKProductType.Consumable:
+                    m_type = UM_ProductType.Consumable;
+                    break;
+                case ISN_SKProductType.NonConsumable:
+                    m_type = UM_ProductType.NonConsumable;
+                    break;
+                case ISN_SKProductType.AutoRenewingSubscription:
+                case ISN_SKProductType.NonRenewingSubscription:
+                    m_type = UM_ProductType.Subscription;
+                    break;
+            }
+
+            m_icon = productTemplate.Icon;
         }
     }
 }
