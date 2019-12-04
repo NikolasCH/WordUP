@@ -128,7 +128,7 @@ public class word : Main
 
 	public void bad_wait ()
 	{
-
+		onShowInterstitial();
 		AN_FirebaseAnalytics.LogEvent("Dad_word");
 		if (MainGetGamObject ("Music"))
 			MainGetGamObject ("Music").SendMessage ("onWrong");
@@ -146,18 +146,23 @@ public class word : Main
 		if (PlayerPrefs.GetInt ("Heart") < 10){
 			
 			if(PlayerPrefs.GetInt ("Add_Heart")>=5){
-				PlayerPrefs.SetInt ("Add_Heart",0);
 				PlayerPrefs.SetInt ("Heart", PlayerPrefs.GetInt ("Heart") + 1);
 				MainGetGamObject ("heart_img").GetComponent<UISprite>().spriteName ="+jizn";
 			}else
 				MainGetGamObject ("heart_img").GetComponent<UISprite>().enabled = false;
 
-			MainGetGamObject ("coin_b").GetComponent<UILabel>().text ="+"+ reward;
 		}else{
-			MainGetGamObject ("heart_img").GetComponent<UISprite>().spriteName ="_1";
-			reward *= PlayerPrefs.GetInt ("OpenWord")==1 ? 2 : 3;
-			MainGetGamObject ("coin_b").GetComponent<UILabel>().text ="+"+ reward;
+			if(PlayerPrefs.GetInt ("Add_Heart")>=5){
+				MainGetGamObject ("coin_img").GetComponent<UISprite>().spriteName ="_1";
+				reward *= 3;
+			}
+			
+			MainGetGamObject ("heart_img").GetComponent<UISprite>().enabled = false;
 		}
+		MainGetGamObject ("coin_b").GetComponent<UILabel>().text ="+"+ reward;
+
+		if(PlayerPrefs.GetInt ("Add_Heart")>=5)
+				PlayerPrefs.SetInt ("Add_Heart",0);
 
 
 		MainGetGamObject ("Heart").GetComponent<TweenScale> ().ResetToBeginning ();

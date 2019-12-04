@@ -86,8 +86,6 @@ public class Main : MonoBehaviour
 			SX.GetComponent<SX_Ads>().smartBanneShow();
 
 		Fill_Heart (((float)PlayerPrefs.GetInt ("Add_Heart")/5f));
-		if(Random.Range(0, 8)>=6 && PlayerPrefs.GetInt ("Ad")!=1 && PlayerPrefs.GetInt ("lvl")>5)
-			onShowInterstitial();
 
 		PlayerPrefs.SetInt ("OpenWord", 0);
 
