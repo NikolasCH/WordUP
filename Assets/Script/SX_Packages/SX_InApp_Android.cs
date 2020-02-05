@@ -17,7 +17,12 @@ using SA.Android.Samples;
 
         private void Start()
         {
-            if (m_BillingClientSample == null)
+
+#if UNITY_IOS
+        Destroy(GetComponent<SX_InApp_Android>());//.enabled = false;
+#endif
+
+        if (m_BillingClientSample == null)
             {
                 m_BillingClientSample = new SX_BillingClient_Android();
             }                 

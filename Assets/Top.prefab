@@ -1335,8 +1335,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1071609738811131839}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -5, z: 0}
-  m_LocalScale: {x: 0.58, y: 0.58, z: 0.4}
+  m_LocalPosition: {x: 0, y: 10, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 0.4}
   m_Children: []
   m_Father: {fileID: 1071609738345250684}
   m_RootOrder: 3
@@ -1372,15 +1372,15 @@ MonoBehaviour:
   updateAnchors: 1
   mColor: {r: 1, g: 1, b: 1, a: 1}
   mPivot: 4
-  mWidth: 970
+  mWidth: 964
   mHeight: 141
   mDepth: -1
   mMat: {fileID: 0}
   autoResizeBoxCollider: 0
   hideIfOffScreen: 0
   keepAspectRatio: 0
-  aspectRatio: 6.8794327
-  mType: 2
+  aspectRatio: 6.8368793
+  mType: 1
   mFillDirection: 4
   mFillAmount: 1
   mInvert: 0

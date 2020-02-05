@@ -28,10 +28,9 @@ MonoBehaviour:
   GooglePlay: 1
   CameraAndGallery: 0
   MediaPlayer: 0
-  LocalNotifications: 0
+  LocalNotifications: 1
   SkipPermissionsDialog: 0
-  RSAPublicKey: Base64-encoded RSA public key to include in your binary. Please remove
-    any spaces.
+  RSAPublicKey: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmuAHQUKmB5N3MSRGooBkKrG5Cn6oXDqwpK/xWgl00GkILrOBGZ1g2+D4pFo9zgzLCi2pDr4clu2zRJ5MgAkBUamY7yvC/XbUfE43yO61y96t0qcxZpM1NrHKOchXQsNt2R1e9UZa7VLFRkoB382ac0t0M7lj32hFdNE1h46TzqVbLEfxgFcFxMAPsj1N7/R5KjUgzV31O9JTwFCzumtw5XRoA7DsCpbW+LfcsMJpIq/6Q5+OfrCQliCIbZPbQVh4t992F/lMhJpKM4jp1wK8NGfHlDOxhn5VjR49VS6FPt1o9Fs4EbVlUgf0E51MOg67jaGkUYSuQ90sRGlRl4Fm7QIDAQAB
   InAppProducts:
   - m_Type: inapp
     m_Sku: words_us_p1
@@ -138,5 +137,5 @@ MonoBehaviour:
     m_SkuDetailsHashId: 0
     m_SettingsIcon: {fileID: 0}
     m_IsConsumable: 1
-  Licensing: 0
+  Licensing: 1
   GooglePlayGamesAPI: 1

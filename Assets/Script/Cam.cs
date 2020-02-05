@@ -107,7 +107,7 @@ public class Cam : MonoBehaviour
     {
         if (PlayerPrefs.GetInt("StoreRate")<PlayerPrefs.GetInt ("lvl")){
             PlayerPrefs.SetInt("StoreRate", PlayerPrefs.GetInt("lvl")+100);
-            UM_ReviewController.RequestReview();
-        }
+			SX_Rate.RequestReview();
+		}
     }
 }

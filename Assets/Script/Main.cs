@@ -5,7 +5,7 @@ using SA.Android.Firebase.Analytics;
 
 public class Main : MonoBehaviour
 {
-	public static string word = "угадай", language = "RU", temp = "";
+	public static string word = "угадай", language = "RU", temp = "", AppleId = "1497352117";
 	public static bool cam = false, sound = true, GameOwer = false;
 	public static int baza_Length = 0, price = 5, OpenWord = 100, DeleteWord = 100, PriceOpenLetter = 10, buyHeart = 500, OpenLetter = 0, OpneAllLetter = 0, OpenWordLetter = 0;
 	public static float heart = 10;

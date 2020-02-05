@@ -19,8 +19,16 @@ public class SX_Sharing : MonoBehaviour
     private UM_ShareDialogBuilder MakeSharingBuilder()
     {
         var builder = new UM_ShareDialogBuilder();
-        builder.SetText("Помоги найти лишнее слово!");
+        builder.SetText("Помоги отгадать лишнее слово!");
+
+#if UNITY_IOS
+        builder.SetUrl("https://itunes.apple.com/app/id" + Main.AppleId);
+#endif
+
+
+#if UNITY_ANDROID
         builder.SetUrl("https://play.google.com/store/apps/details?id=" + Application.identifier);
+#endif
 
         //Juts generating simple red texture with 32x32 resolution
         var sampleRedTexture = SA_IconManager.GetIcon(Color.red, 32, 32);
